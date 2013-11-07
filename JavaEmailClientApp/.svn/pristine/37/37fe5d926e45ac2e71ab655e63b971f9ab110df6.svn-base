@@ -1,0 +1,37 @@
+package jeep.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+
+public class ViewPanel extends JPanel {
+
+	private static final long serialVersionUID = -2207425570312903903L;
+
+	private MessageTableModel messageTableModel = null;
+	private JScrollPane scrollPan = null;
+
+	public ViewPanel(MessageTableModel messageTableModel) {
+		this.messageTableModel = messageTableModel;
+		getTable();
+	}
+
+	private void getTable() {
+
+		if (scrollPan != null)
+			remove(scrollPan);
+
+		JTable table = new JTable(messageTableModel);
+		table.setPreferredScrollableViewportSize(new Dimension(800, 300));
+
+		// Create the scroll pane and add the table to it.
+		scrollPan = new JScrollPane(table);
+
+		// Add the scroll pane to this window.
+		add(scrollPan, BorderLayout.CENTER);
+	}
+}

@@ -1,0 +1,29 @@
+package jeep.mail;
+
+import jeep.data.beans.MailConfig;
+import jeep.data.beans.Message;
+import jeep.gui.MailApp;
+
+public class MailController {
+
+	private MailConfig mailConfig = null;
+
+	public MailController() {
+		mailConfig = MailApp.getConfiguration().getMailConfig();
+	}
+
+	public boolean sendMail(Message message) {
+		if (mailConfig.getIsGmailAccount())
+			return gmailSend(message);
+		else
+			return smtpSend(message);
+	}
+
+	public boolean smtpSend(Message message) {
+		return false;
+	}
+
+	public boolean gmailSend(Message message) {
+		return false;
+	}
+}

@@ -1,0 +1,692 @@
+package jeep.data.mysql;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import jeep.data.beans.Contact;
+import jeep.data.beans.Folder;
+import jeep.data.beans.Message;
+
+/**
+ * This manages the connection with the MySQL database. It provides Create,
+ * Read, Update and Delete methods for both the messages and the folders.
+ * 
+ * @author Natacha Gabbamonte 0932340
+ * 
+ */
+public class DatabaseController {
+
+	public static String EMAIL_DELIMITER = ";";
+	private Logger logger = Logger.getLogger(getClass().getName());
+	private Connection connection = null;
+
+	private String url = null;
+	private String user = null;
+	private String password = null;
+
+	private int[] keyFolders = { 1, 2, 3 };
+
+	public DatabaseController(String urlMySQLServer, String portMySQLServer,
+			String user, String password, String database) {
+		url = "jdbc:mysql://" + urlMySQLServer + ":" + portMySQLServer + "/"
+				+ database;
+		this.user = user;
+		this.password = password;
+	}
+
+	/*
+	 * Connects to the database.
+	 */
+	private void connectToDB() {
+		try {
+			// Class.forName("com.mysql.jdbc.Driver").newInstance();
+			connection = DriverManager.getConnection(url, user, password);
+		} catch (SQLException e1) {
+			logger.log(Level.SEVERE, "Unable to connect to the database.", e1);
+		} catch (Exception e2) {
+			logger.log(Level.SEVERE, "Unexpected error.", e2);
+			System.exit(1);
+		}
+
+	}
+
+	/*
+	 * Closes the connection to the database.
+	 */
+	private void closeDB() {
+		try {
+			connection.close();
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Unable to close the connection to the database.", e);
+		}
+	}
+
+	/**
+	 * Returns all the messages.
+	 * 
+	 * @return A list of all the messages.
+	 */
+	public List<Message> getAllMessages() {
+		List<Message> messages = new ArrayList<Message>();
+		Statement statement = null;
+		ResultSet resultSet = null;
+		connectToDB();
+		try {
+			statement = connection.createStatement();
+			resultSet = statement.executeQuery("Select * from message");
+			while (resultSet.next()) {
+				messages.add(new Message(resultSet.getInt(1), resultSet
+						.getString(2),
+						emailStringToList(resultSet.getString(3)),
+						emailStringToList(resultSet.getString(4)),
+						emailStringToList(resultSet.getString(5)), resultSet
+								.getString(6), resultSet.getString(7),
+						resultSet.getDate(8), resultSet.getInt(9)));
+			}
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem retrieving records from Message table.", e);
+			messages = null;
+		} finally {
+			closeDB();
+		}
+		return messages;
+	}
+
+	/**
+	 * Returns a list of messages contained in a specific folder.
+	 * 
+	 * @param folderName
+	 *            The folder name.
+	 * @return The list of messages.
+	 */
+	public List<Message> getMessagesInFolder(String folderName) {
+		List<Message> messages = new ArrayList<Message>();
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		int folderId = this.getFolderIdFromName(folderName);
+		connectToDB();
+		try {
+			String preparedQuery = "Select * from message where folder_id = ?";
+
+			statement = connection.prepareStatement(preparedQuery);
+			statement.setInt(1, folderId);
+			resultSet = statement.executeQuery();
+
+			while (resultSet.next()) {
+				messages.add(new Message(resultSet.getInt(1), resultSet
+						.getString(2),
+						emailStringToList(resultSet.getString(3)),
+						emailStringToList(resultSet.getString(4)),
+						emailStringToList(resultSet.getString(5)), resultSet
+								.getString(6), resultSet.getString(7),
+						resultSet.getDate(8), resultSet.getInt(9)));
+			}
+
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem retrieving records from Message table.", e);
+			messages = null;
+		} finally {
+			closeDB();
+		}
+		return messages;
+	}
+
+	/**
+	 * Returns a list of messages contained in a specific folder.
+	 * 
+	 * @param folderId
+	 *            The folder id.
+	 * @return The list of messages.
+	 */
+	public List<Message> getMessagesInFolder(int folderId) {
+		List<Message> messages = new ArrayList<Message>();
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		connectToDB();
+		try {
+			String preparedQuery = "Select * from message where folder_id = ?";
+
+			statement = connection.prepareStatement(preparedQuery);
+			statement.setInt(1, folderId);
+			resultSet = statement.executeQuery();
+
+			while (resultSet.next()) {
+				messages.add(new Message(resultSet.getInt(1), resultSet
+						.getString(2),
+						emailStringToList(resultSet.getString(3)),
+						emailStringToList(resultSet.getString(4)),
+						emailStringToList(resultSet.getString(5)), resultSet
+								.getString(6), resultSet.getString(7),
+						resultSet.getDate(8), resultSet.getInt(9)));
+			}
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem retrieving records from Message table.", e);
+			messages = null;
+		} finally {
+			closeDB();
+		}
+		return messages;
+	}
+
+	/**
+	 * Returns a list of all the contacts.
+	 * 
+	 * @return A list of all the contacts.
+	 */
+	public List<Contact> getContacts() {
+		List<Contact> contacts = new ArrayList<Contact>();
+		Statement statement = null;
+		ResultSet resultSet = null;
+		connectToDB();
+		try {
+			statement = connection.createStatement();
+			resultSet = statement.executeQuery("Select * from contact");
+			while (resultSet.next()) {
+				contacts.add(new Contact(resultSet.getInt(1), resultSet
+						.getString(2), resultSet.getString(3), resultSet
+						.getString(4), resultSet.getString(5), resultSet
+						.getString(6), resultSet.getString(7)));
+			}
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem retrieving records from Contact table.", e);
+			contacts = null;
+		} finally {
+			closeDB();
+		}
+		return contacts;
+	}
+
+	/**
+	 * Returns a list of all the folders.
+	 * 
+	 * @return A list of all the folders.
+	 */
+	public List<Folder> getFolders() {
+		List<Folder> folders = new ArrayList<Folder>();
+		Statement statement = null;
+		ResultSet resultSet = null;
+		connectToDB();
+		try {
+			statement = connection.createStatement();
+			resultSet = statement.executeQuery("Select * from folder");
+			while (resultSet.next()) {
+				folders.add(new Folder(resultSet.getInt(1), resultSet
+						.getString(2)));
+			}
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem retrieving records from Folder table.", e);
+			folders = null;
+		} finally {
+			closeDB();
+		}
+		return folders;
+
+	}
+
+	/**
+	 * Returns the folder id corresponding to the given name. If the folder name
+	 * is not found or an error occurs, -1 is returned.
+	 * 
+	 * @param name
+	 *            The folder's name.
+	 * @return The folder's id.
+	 */
+	public int getFolderIdFromName(String name) {
+
+		int folderId = -1;
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		connectToDB();
+		try {
+			String preparedQuery = "Select folder_id from folder where name = ?";
+
+			statement = connection.prepareStatement(preparedQuery);
+			statement.setString(1, name);
+			resultSet = statement.executeQuery();
+
+			if (resultSet.next())
+				folderId = resultSet.getInt(1);
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem retrieving records from Folder table.", e);
+		} finally {
+			closeDB();
+		}
+		return folderId;
+	}
+
+	/**
+	 * Inserts a message to the database.
+	 * 
+	 * @param message
+	 *            The message to be inserted.
+	 * @return Whether the insert was successful or not.
+	 */
+	public boolean insertMessage(Message message) {
+		boolean valid = true;
+		PreparedStatement statement = null;
+		connectToDB();
+		try {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			String dateAndTime = sdf.format(message.getMessageDate());
+
+			String preparedQuery = "INSERT INTO message (message_id, sender_email, receiver_email,"
+					+ " bcc, cc, subject, message, message_date, folder_id) "
+					+ "VALUES (NULL,?,?,?,?,?,?,'" + dateAndTime + "',?)";
+			statement = connection.prepareStatement(preparedQuery);
+			statement.setString(1, message.getSenderEmail());
+			statement.setString(2,
+					emailListToString(message.getReceiverEmail()));
+			statement.setString(3, emailListToString(message.getBcc()));
+			statement.setString(4, emailListToString(message.getCc()));
+			statement.setString(5, message.getSubject());
+			statement.setString(6, message.getMessage());
+			statement.setInt(7, message.getFolderId());
+
+			int records = statement.executeUpdate();
+
+			if (records != 1)
+				valid = false;
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem inserting a record in Message table.", e);
+			valid = false;
+		} finally {
+			closeDB();
+		}
+		return valid;
+	}
+
+	/**
+	 * Inserts a new folder to the database.
+	 * 
+	 * @param folder
+	 *            The folder to be added.
+	 * @return Whether the insert was successful or not.
+	 */
+	public boolean insertFolder(Folder folder) {
+		boolean valid = true;
+		PreparedStatement statement = null;
+		connectToDB();
+		try {
+			String preparedQuery = "INSERT INTO folder (folder_id, name) "
+					+ "VALUES (NULL,?)";
+			statement = connection.prepareStatement(preparedQuery);
+			statement.setString(1, folder.getName());
+
+			int records = statement.executeUpdate();
+
+			if (records != 1)
+				valid = false;
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem inserting a record in Folder table.", e);
+			valid = false;
+		} finally {
+			closeDB();
+		}
+		return valid;
+	}
+
+	/**
+	 * Inserts a new contact to the database.
+	 * 
+	 * @param contact
+	 *            The contact to be added.
+	 * @return Whether the insert was successful or not.
+	 */
+	public boolean insertContact(Contact contact) {
+		boolean valid = true;
+		PreparedStatement statement = null;
+		connectToDB();
+		try {
+			String preparedQuery = "INSERT INTO contact (contact_id, first_name, last_name, email, phone_number, address, comments) "
+					+ "VALUES (NULL,?,?,?,?,?,?)";
+			statement = connection.prepareStatement(preparedQuery);
+			statement.setString(1, contact.getFirstName());
+			statement.setString(2, contact.getLastName());
+			statement.setString(3, contact.getEmail());
+			statement.setString(4, contact.getPhoneNumber());
+			statement.setString(5, contact.getAddress());
+			statement.setString(6, contact.getComments());
+
+			int records = statement.executeUpdate();
+
+			if (records != 1)
+				valid = false;
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem inserting a record in Contact table.", e);
+			valid = false;
+		} finally {
+			closeDB();
+		}
+		return valid;
+	}
+
+	/**
+	 * Deletes the message with the specified id from the database.
+	 * 
+	 * @param message
+	 *            The message id of the message to be deleted.
+	 * @return Whether or not the deletion was successful.
+	 */
+	public boolean deleteMessage(int messageId) {
+
+		boolean valid = true;
+		PreparedStatement statement = null;
+		// A valid id is positive.
+		if (messageId > 0) {
+			valid = true;
+			connectToDB();
+			try {
+				String preparedQuery = "DELETE FROM message WHERE message_id = ?";
+				statement = connection.prepareStatement(preparedQuery);
+				statement.setInt(1, messageId);
+
+				int records = statement.executeUpdate();
+				if (records != 1)
+					valid = false;
+			} catch (SQLException e) {
+				logger.log(Level.WARNING,
+						"Problem updating a record in Message table.", e);
+				valid = false;
+			} finally {
+				closeDB();
+			}
+		}
+		return valid;
+	}
+
+	/**
+	 * Deletes the contact with the specified contact id from the database.
+	 * 
+	 * @param message
+	 *            The contact id of the contact to be deleted.
+	 * @return Whether or not the deletion was successful.
+	 */
+	public boolean deleteContact(int contactId) {
+
+		boolean valid = false;
+		PreparedStatement statement = null;
+		// If the Id = -1, that means it's a new record.
+		if (contactId > 0) {
+			valid = true;
+			connectToDB();
+			try {
+				String preparedQuery = "DELETE FROM contact WHERE contact_id = ?";
+				statement = connection.prepareStatement(preparedQuery);
+				statement.setInt(1, contactId);
+
+				int records = statement.executeUpdate();
+
+				if (records != 1)
+					valid = false;
+			} catch (SQLException e) {
+				logger.log(Level.WARNING,
+						"Problem updating a record in Contact table.", e);
+				valid = false;
+			} finally {
+				closeDB();
+			}
+		}
+		return valid;
+	}
+
+	/**
+	 * Deletes the folder with the specified folder id from the database.
+	 * 
+	 * @param folder
+	 *            The folder id of the folder to be deleted.
+	 * @return Whether or not the deletion was successful.
+	 */
+	public boolean deleteFolder(int folderId) {
+
+		boolean valid = false;
+		PreparedStatement statement = null;
+		// If the Id = -1, that means it's a new record.
+		if (folderId > 0) {
+			valid = true;
+			// These folders are essential and should never be deleted.
+			for (int f : keyFolders)
+				if (folderId == f)
+					valid = false;
+			if (valid) {
+				// This deletes all the messages that are contained by this
+				// folder.
+				List<Message> messages = this.getMessagesInFolder(folderId);
+				for (Message m : messages)
+					this.deleteMessage(m.getMessageId());
+
+				connectToDB();
+				try {
+					String preparedQuery = "DELETE FROM folder WHERE folder_id = ?";
+					statement = connection.prepareStatement(preparedQuery);
+					statement.setInt(1, folderId);
+
+					int records = statement.executeUpdate();
+
+					if (records != 1)
+						valid = false;
+				} catch (SQLException e) {
+					logger.log(Level.WARNING,
+							"Problem updating a record in Folder table.", e);
+					valid = false;
+				} finally {
+					closeDB();
+				}
+			}
+		}
+		return valid;
+	}
+
+	/**
+	 * Deletes the folder with the specified folder name from the database.
+	 * 
+	 * @param folder
+	 *            The folder name of the folder to be deleted.
+	 * @return Whether or not the deletion was successful.
+	 */
+	public boolean deleteFolder(String folderName) {
+
+		boolean valid = false;
+		PreparedStatement statement = null;
+		int folderId = this.getFolderIdFromName(folderName);
+		// If the Id = -1, that means it's not valid.
+		if (folderId > 0) {
+			valid = true;
+			// These folders are essential and should never be deleted.
+			for (int f : keyFolders)
+				if (folderId == f)
+					valid = false;
+			if (valid) {
+				// This deletes all the messages that are contained by this
+				// folder.
+				List<Message> messages = this.getMessagesInFolder(folderId);
+				for (Message m : messages)
+					this.deleteMessage(m.getMessageId());
+
+				connectToDB();
+				try {
+					statement = connection
+							.prepareStatement("DELETE FROM folder WHERE folder_id = "
+									+ folderId);
+
+					int records = statement.executeUpdate();
+					if (records != 1)
+						valid = false;
+				} catch (SQLException e) {
+					logger.log(Level.WARNING,
+							"Problem updating a record in Folder table.", e);
+					valid = false;
+				} finally {
+					closeDB();
+				}
+			}
+		}
+		return valid;
+	}
+
+	/**
+	 * Updates a message in the database.
+	 * 
+	 * @param message
+	 *            The message to be updated.
+	 * @return Whether the message was updated successfully.
+	 */
+	public boolean updateMessage(Message message) {
+
+		boolean valid = true;
+		PreparedStatement statement = null;
+		connectToDB();
+		try {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			String dateAndTime = sdf.format(message.getMessageDate());
+
+			String preparedQuery = "UPDATE message SET sender_email = ?, receiver_email = ?,"
+					+ "bcc = ?, cc = ?, subject = ?, message = ?, message_date = '"
+					+ dateAndTime + "', folder_id = ? WHERE message_id = ?";
+			statement = connection.prepareStatement(preparedQuery);
+			statement.setString(1, message.getSenderEmail());
+			statement.setString(2,
+					emailListToString(message.getReceiverEmail()));
+			statement.setString(3, emailListToString(message.getBcc()));
+			statement.setString(4, emailListToString(message.getCc()));
+			statement.setString(5, message.getSubject());
+			statement.setString(6, message.getMessage());
+			statement.setInt(7, message.getFolderId());
+			statement.setInt(8, message.getMessageId());
+
+			int records = statement.executeUpdate();
+			if (records != 1)
+				valid = false;
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem updating a record in Message table.", e);
+			valid = false;
+		} finally {
+			closeDB();
+		}
+		return valid;
+	}
+
+	/**
+	 * Updates a contact in the database.
+	 * 
+	 * @param contact
+	 *            The contact to be updated.
+	 * @return Whether the contact was updated successfully.
+	 */
+	public boolean updateContact(Contact contact) {
+
+		boolean valid = true;
+		PreparedStatement statement = null;
+		connectToDB();
+		try {
+			String preparedQuery = "UPDATE contact SET first_name = ?, last_name = ?,"
+					+ "email = ?, phone_number = ?', address = ?, comments = ? WHERE contact_id = ?";
+			statement = connection.prepareStatement(preparedQuery);
+			statement.setString(1, contact.getFirstName());
+			statement.setString(2, contact.getLastName());
+			statement.setString(3, contact.getEmail());
+			statement.setString(4, contact.getPhoneNumber());
+			statement.setString(5, contact.getAddress());
+			statement.setString(6, contact.getComments());
+			statement.setInt(7, contact.getContactId());
+
+			int records = statement.executeUpdate();
+			if (records != 1)
+				valid = false;
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem updating a record in Contact table.", e);
+			valid = false;
+		} finally {
+			closeDB();
+		}
+		return valid;
+	}
+
+	/**
+	 * Updates a folder in the database.
+	 * 
+	 * @param contact
+	 *            The folder to be updated.
+	 * @return Whether the folder was updated successfully.
+	 */
+	public boolean updateFolder(Folder folder) {
+
+		boolean valid = true;
+		PreparedStatement statement = null;
+		connectToDB();
+		try {
+			for (int f : keyFolders)
+				if (folder.getFolderId() == f)
+					valid = false;
+			if (valid) {
+				String preparedQuery = "UPDATE folder SET name = ? WHERE folder_id = ?";
+				statement = connection.prepareStatement(preparedQuery);
+				statement.setString(1, folder.getName());
+				statement.setInt(2, folder.getFolderId());
+
+				int records = statement.executeUpdate();
+				if (records != 1)
+					valid = false;
+			}
+		} catch (SQLException e) {
+			logger.log(Level.WARNING,
+					"Problem updating a record in Folder table.", e);
+			valid = false;
+		} finally {
+			closeDB();
+		}
+		return valid;
+	}
+
+	/**
+	 * Converts a list of e-mails into one ";" delimited string.
+	 * 
+	 * @param emailsList
+	 *            The list of e-mails.
+	 * @return The delimited string of e-mails.
+	 */
+	public String emailListToString(ArrayList<String> emailsList) {
+		String emailsStr = "";
+
+		for (String email : emailsList)
+			emailsStr += email + EMAIL_DELIMITER;
+
+		return emailsStr;
+	}
+
+	/**
+	 * Converts a string of e-mails delimited by a ";" into a list.
+	 * 
+	 * @param emailsStr
+	 *            The string of e-mails.
+	 * @return The list of e-mails.
+	 */
+	public ArrayList<String> emailStringToList(String emailsStr) {
+		ArrayList<String> emailsList = new ArrayList<String>();
+		String[] emails = emailsStr.split(EMAIL_DELIMITER);
+		for (String e : emails)
+			if (!e.equals(""))
+				emailsList.add(e);
+		return emailsList;
+	}
+}

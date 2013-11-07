@@ -1,0 +1,163 @@
+package jeep.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.swing.ImageIcon;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+
+import jeep.data.beans.MailFolder;
+import jeep.data.mysql.DatabaseController;
+
+public class TreePanel extends JPanel implements TreeSelectionListener {
+
+	private static final long serialVersionUID = 59783497902323798L;
+
+	private Logger logger = null;
+
+	private ViewPanel viewPanel = null;
+	private DatabaseController dbController = null;
+	private List<MailFolder> allFolders = null;
+	private JTree tree = null;
+	private JScrollPane treeView = null;
+
+	public TreePanel(ViewPanel viewPanel, DatabaseController dbController) {
+		logger = Logger.getLogger(getClass().getName());
+		this.viewPanel = viewPanel;
+		this.dbController = dbController;
+		createTree();
+		this.add(treeView, BorderLayout.CENTER);
+	}
+
+	private void createTree() {
+		allFolders = dbController.getFolders();
+		DefaultMutableTreeNode top = new DefaultMutableTreeNode("Mail");
+
+		for (MailFolder mf : allFolders) {
+			DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode(
+					mf.getName());
+			top.add(dmtn);
+		}
+
+		tree = new JTree(top);
+		tree.getSelectionModel().setSelectionMode(
+				TreeSelectionModel.SINGLE_TREE_SELECTION);
+		tree.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+
+		ImageIcon leafIcon = MailApp.createImageIcon("images/folder_icon.png");
+		if (leafIcon != null) {
+			DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+			renderer.setLeafIcon(leafIcon);
+			tree.setCellRenderer(renderer);
+		} else {
+			logger.log(Level.WARNING, "Leaf icon missing; using default.");
+		}
+
+		// Make the popup menu
+		makeTreePopupMenu();
+
+		tree.addTreeSelectionListener(this);
+		tree.setRootVisible(false);
+
+		treeView = new JScrollPane(tree);
+	}
+
+	/**
+	 * Create the popup menu and attach it to the tree
+	 */
+	private void makeTreePopupMenu() {
+		JMenuItem menuItem;
+
+		// Create the popup menu.
+		JPopupMenu popup = new JPopupMenu();
+
+		menuItem = new JMenuItem("Add New Folder");
+		popup.add(menuItem);
+
+		menuItem = new JMenuItem("Edit Folder Name");
+		popup.add(menuItem);
+
+		popup.addSeparator();
+
+		menuItem = new JMenuItem("Delete Folder");
+		popup.add(menuItem);
+
+		// Add mouse listener to the text area so the popup menu can come up.
+		MouseListener popupListener = new PopupListener(popup);
+
+		// add listener to the tree
+		tree.addMouseListener(popupListener);
+	}
+
+	@Override
+	public void valueChanged(TreeSelectionEvent e) {
+
+	}
+
+	class PopupListener extends MouseAdapter {
+
+		JPopupMenu popup;
+
+		public PopupListener(JPopupMenu popupMenu) {
+			popup = popupMenu;
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			maybeShowPopup(e, false);
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			maybeShowPopup(e, true);
+		}
+
+		private void maybeShowPopup(MouseEvent e, boolean pressed) {
+			// If this is the right mouse button
+			if (e.isPopupTrigger()) {
+				int selRow = tree.getRowForLocation(e.getX(), e.getY());
+				if (selRow != -1) {
+					popup.show(e.getComponent(), e.getX(), e.getY());
+					pressed = false;
+				}
+			} else {
+				// If this is the left mouse button
+				if (pressed) {
+					// Determine which leaf (row) we are nearest to
+					int selRow = tree.getRowForLocation(e.getX(), e.getY());
+					// Determine the path to this leaf
+					TreePath selPath = tree.getPathForLocation(e.getX(),
+							e.getY());
+					// We are near enough to a leaf
+					if (MailApp.DEBUG) {
+						if (selRow != -1) {
+							if (e.getClickCount() == 1) {
+								System.out.println("One click at row " + selRow
+										+ " and path " + selPath);
+							} else if (e.getClickCount() == 2) {
+								System.out.println("Double click at row "
+										+ selRow + " and path " + selPath);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,227 @@
+package jeep.data.beans;
+
+import java.util.Date;
+
+/**
+ * This is a java bean for the database Message table.
+ * 
+ * @author Natacha Gabbamonte 0932340
+ * 
+ */
+public class Message {
+
+	private int messageId;
+	private String senderEmail = null;
+	private String receiverEmail = null;
+	private String bcc = null;
+	private String cc = null;
+	private String message = null;
+	private Date messageDate = null;
+	private int folderId;
+
+	/**
+	 * No parameter constructor. Sets message id and folder id to -1. Sets
+	 * String to "". Sets Date to null.
+	 */
+	public Message() {
+		super();
+		this.messageId = -1;
+		this.senderEmail = "";
+		this.receiverEmail = "";
+		this.bcc = "";
+		this.cc = "";
+		this.message = "";
+		this.messageDate = null;
+		this.folderId = -1;
+	}
+
+	/**
+	 * Constructor with parmeters.
+	 * 
+	 * @param messageId
+	 * @param senderEmail
+	 * @param receiverEmail
+	 * @param bcc
+	 * @param cc
+	 * @param message
+	 * @param messageDate
+	 * @param folderId
+	 */
+	public Message(int messageId, String senderEmail, String receiverEmail,
+			String bcc, String cc, String message, Date messageDate,
+			int folderId) {
+		super();
+		this.messageId = messageId;
+		this.senderEmail = senderEmail;
+		this.receiverEmail = receiverEmail;
+		this.bcc = bcc;
+		this.cc = cc;
+		this.message = message;
+		this.messageDate = messageDate;
+		this.folderId = folderId;
+	}
+
+	/**
+	 * Returns the message id.
+	 * 
+	 * @return The message id.
+	 */
+	public int getMessageId() {
+		return messageId;
+	}
+
+	/**
+	 * Sets the message id.
+	 * 
+	 * @param messageId
+	 *            The new message id.
+	 */
+	public void setMessageId(int messageId) {
+		this.messageId = messageId;
+	}
+
+	/**
+	 * Returns the sender's email.
+	 * 
+	 * @return The sender's email.
+	 */
+	public String getSenderEmail() {
+		return senderEmail;
+	}
+
+	/**
+	 * Sets the sender's email.
+	 * 
+	 * @param senderEmail
+	 *            The new sender email.
+	 */
+	public void setSenderEmail(String senderEmail) {
+		this.senderEmail = senderEmail;
+	}
+
+	/**
+	 * Returns the receiver email.
+	 * 
+	 * @return The receiver email.
+	 */
+	public String getReceiverEmail() {
+		return receiverEmail;
+	}
+
+	/**
+	 * Sets the receiver email.
+	 * 
+	 * @param receiverEmail
+	 *            The receiver email.
+	 */
+	public void setReceiverEmail(String receiverEmail) {
+		this.receiverEmail = receiverEmail;
+	}
+
+	/**
+	 * Returns the BCC.
+	 * 
+	 * @return The BCC.
+	 */
+	public String getBcc() {
+		return bcc;
+	}
+
+	/**
+	 * Sets the BCC.
+	 * 
+	 * @param bcc
+	 *            The new BCC.
+	 */
+	public void setBcc(String bcc) {
+		this.bcc = bcc;
+	}
+
+	/**
+	 * Returns the CC.
+	 * 
+	 * @return The CC.
+	 */
+	public String getCc() {
+		return cc;
+	}
+
+	/**
+	 * Sets the CC.
+	 * 
+	 * @param cc
+	 *            The new CC.
+	 */
+	public void setCc(String cc) {
+		this.cc = cc;
+	}
+
+	/**
+	 * Returns the message (content of the mail).
+	 * 
+	 * @return The content of the mail.
+	 */
+	public String getMessage() {
+		return message;
+	}
+
+	/**
+	 * Sets the message (content of the mail).
+	 * 
+	 * @return The new content of the mail.
+	 */
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	/**
+	 * Returns the message date.
+	 * 
+	 * @return The date.
+	 */
+	public Date getMessageDate() {
+		return messageDate;
+	}
+
+	/**
+	 * Sets the message date.
+	 * 
+	 * @param messageDate
+	 *            The new message date.
+	 */
+	public void setMessageDate(Date messageDate) {
+		this.messageDate = messageDate;
+	}
+
+	/**
+	 * Returns the folder id (where the message is located).
+	 * 
+	 * @return The folder id.
+	 */
+	public int getFolderId() {
+		return folderId;
+	}
+
+	/**
+	 * Sets the folder id (where the message is located).
+	 * 
+	 * @param folderId
+	 *            The new folder id.
+	 */
+	public void setFolderId(int folderId) {
+		this.folderId = folderId;
+	}
+
+	/**
+	 * Returns a String representation of the Message object.
+	 */
+	@Override
+	public String toString() {
+		return "Message [messageId=" + messageId + ", senderEmail="
+				+ senderEmail + ", receiverEmail=" + receiverEmail + ", bcc="
+				+ bcc + ", cc=" + cc + ", message=" + message
+				+ ", messageDate=" + messageDate + ", folderId=" + folderId
+				+ "]";
+	}
+
+}

@@ -1,0 +1,149 @@
+package jeep.gui;
+
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.swing.table.AbstractTableModel;
+
+import jeep.data.beans.MailMessage;
+import jeep.data.mysql.DatabaseController;
+
+public class MessageTableModel extends AbstractTableModel {
+
+	private static final long serialVersionUID = -741654996687365388L;
+
+	private Vector<String> columnNames = new Vector<String>();
+	private Vector<MailMessage> data = new Vector<MailMessage>();
+	private Logger logger = Logger.getLogger(getClass().getName());
+
+	/**
+	 * @param rsmd
+	 * @return
+	 */
+	public int loadColumnNames(ResultSetMetaData rsmd) {
+
+		int colCount = 0;
+		try {
+			colCount = rsmd.getColumnCount();
+			for (int i = 1; i <= colCount; ++i)
+				columnNames.addElement(rsmd.getColumnName(i));
+		} catch (SQLException e) {
+			logger.log(
+					Level.SEVERE,
+					"An error occured while trying to populate the MessageTableModel's column names.",
+					e);
+		}
+
+		return colCount;
+	}
+
+	/**
+	 * @param resultSet
+	 * @return
+	 */
+	public int loadData(ResultSet resultSet) {
+		int rowCount = 0;
+		try {
+			resultSet.beforeFirst();
+			while (resultSet.next()) {
+				rowCount++;
+				data.addElement(new MailMessage(resultSet.getInt(1), resultSet
+						.getString(2), DatabaseController
+						.emailStringToList(resultSet.getString(3)),
+						DatabaseController.emailStringToList(resultSet
+								.getString(4)), DatabaseController
+								.emailStringToList(resultSet.getString(5)),
+						resultSet.getString(6), resultSet.getString(7),
+						resultSet.getDate(8), resultSet.getInt(9)));
+			}
+		} catch (SQLException e) {
+			logger.log(
+					Level.SEVERE,
+					"An error occured while trying to populate the MessageTableModel's entries.",
+					e);
+		}
+
+		return rowCount;
+	}
+
+	public MailMessage getMailMessage(int row) {
+		return data.elementAt(row);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.swing.table.TableModel#getRowCount()
+	 */
+	@Override
+	public int getRowCount() {
+		return data.size();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.swing.table.TableModel#getColumnCount()
+	 */
+	@Override
+	public int getColumnCount() {
+		return columnNames.size();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.swing.table.AbstractTableModel#getColumnName(int)
+	 */
+	public String getColumnName(int col) {
+		return (String) columnNames.elementAt(col);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.swing.table.AbstractTableModel#getColumnClass(int)
+	 */
+	public Class<? extends Object> getColumnClass(int c) {
+		return getValueAt(0, c).getClass();
+	}
+
+	@Override
+	public Object getValueAt(int row, int col) {
+		switch (col) {
+		case 0:
+			return data.elementAt(row).getMessageId();
+		case 1:
+			return data.elementAt(row).getSenderEmail();
+		case 2:
+			return data.elementAt(row).getReceiverEmail();
+		case 3:
+			return data.elementAt(row).getBcc();
+		case 4:
+			return data.elementAt(row).getCc();
+		case 5:
+			return data.elementAt(row).getSubject();
+		case 6:
+			return data.elementAt(row).getMessage();
+		case 7:
+			return data.elementAt(row).getMessageDate();
+		case 8:
+			return data.elementAt(row).getFolderId();
+		}
+		// Should throw exception since this must never happen
+		return null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.swing.table.AbstractTableModel#isCellEditable(int, int)
+	 */
+	public boolean isCellEditable(int row, int col) {
+		return false;
+	}
+}

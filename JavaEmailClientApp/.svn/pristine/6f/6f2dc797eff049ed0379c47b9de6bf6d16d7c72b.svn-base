@@ -1,0 +1,5 @@
+package jeep.mail;
+
+public class MailReceiveController {
+
+}

@@ -1,0 +1,169 @@
+package jeep.gui;
+
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.util.Locale;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import jeep.data.beans.MailConfig;
+import jeep.data.bundles.MessageController;
+import jeep.data.configuration.ConfigurationController;
+
+/**
+ * This is the main GUI app for the JEEP application.
+ * 
+ * @author Natacha Gabbamonte 0932340
+ * 
+ */
+public class MailApp extends JFrame {
+
+	public static final boolean DEBUG = true;
+	private static final long serialVersionUID = -6807928585770576304L;
+
+	private static MessageController messages = null;
+	private static ConfigurationController configuration = null;
+
+	/**
+	 * Sets up the main app.
+	 */
+	public MailApp() {
+		super();
+
+		try {
+			UIManager
+					.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null,
+					"The look and feel you selected is not supported.",
+					"Look and Feel Error", JOptionPane.INFORMATION_MESSAGE);
+		}
+
+		this.setPreferredSize(new Dimension(600, 600));
+		setTitle(getMessageController().getString("applicationTitle"));
+		JPanel panel = new SettingsPanel(configuration);
+		this.add(panel);
+		pack();
+		setLocationRelativeTo(null);
+		// this.addComponentListener(new
+		// FrameSizeListener(this.getPreferredSize()));
+		this.setVisible(true);
+	}
+
+	/**
+	 * Main method of the application. Gets the configuration for the whole app,
+	 * and the messages. It displays the splash screen first and then the main
+	 * app.
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// Loads the configuration properties.
+		configuration = new ConfigurationController();
+		configuration.loadProperties();
+		MailConfig mailConfig = configuration.getMailConfig();
+
+		// Loads the messages from the language stored in the configurations.
+		messages = new MessageController(Locale.forLanguageTag(mailConfig
+				.getLanguage()));
+
+		// Displays Splash screen for 5 seconds.
+		new SplashScreen(5000).showSplash();
+
+		// Displays main app.
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				MailApp app = new MailApp();
+				app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			}
+		});
+	}
+
+	/**
+	 * Returns the MessageController which contains all the strings for the
+	 * application.
+	 * 
+	 * @return The MessageController.
+	 */
+	public static MessageController getMessageController() {
+		return messages;
+	}
+
+	/**
+	 * Sets the MessageController with a new locale.
+	 * 
+	 * @param locale
+	 *            The locale
+	 */
+	public static void setMessageController(Locale locale) {
+		messages = new MessageController(locale);
+	}
+
+	/**
+	 * Returns the ConfigurationController.
+	 * 
+	 * @return The controller.
+	 */
+	public static ConfigurationController getConfiguration() {
+		return configuration;
+	}
+
+	/**
+	 * Creates an ImageIcon from a path.
+	 * 
+	 * @param path
+	 *            The path
+	 * @return The ImageIcon
+	 */
+	public static ImageIcon createImageIcon(String path) {
+		java.net.URL imgURL = MailApp.class.getResource(path);
+		if (imgURL != null) {
+			return new ImageIcon(imgURL);
+		} else {
+			System.err.println("Couldn't find file: " + path);
+			return null;
+		}
+	}
+
+	/**
+	 * Creates a GridBagConstraints object with the sent in values.
+	 * 
+	 * @param gridx
+	 *            The column
+	 * @param gridy
+	 *            The row
+	 * @param gridwidth
+	 *            The width
+	 * @param gridheight
+	 *            The height
+	 * @return The GridBagConstraints object
+	 */
+	public static GridBagConstraints makeConstraints(int gridx, int gridy,
+			int gridwidth, int gridheight, int[] insets, double weightx,
+			double weighty, int fill) {
+		GridBagConstraints constraints = new GridBagConstraints();
+
+		constraints.gridheight = gridheight;
+		constraints.gridwidth = gridwidth;
+		constraints.gridx = gridx;
+		constraints.gridy = gridy;
+
+		// Default for all the components.
+		constraints.insets = new Insets(insets[0], insets[1], insets[2],
+				insets[3]);
+		constraints.weightx = weightx;
+		constraints.weighty = weighty;
+		constraints.fill = fill;
+
+		return constraints;
+	}
+
+}

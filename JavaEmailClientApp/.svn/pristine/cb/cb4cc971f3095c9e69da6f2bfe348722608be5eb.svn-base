@@ -1,0 +1,11 @@
+<html>
+<head>
+<title>Jeep Mail Application</title>
+</head>
+<body class="doc">
+	<h1>Jeep Mail Application</h1>
+
+	<p>This mail application lets you receive mail and send mail using
+		POP3 and SMTP.</p>
+</body>
+</html>

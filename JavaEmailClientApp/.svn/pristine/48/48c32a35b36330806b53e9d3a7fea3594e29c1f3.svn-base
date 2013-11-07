@@ -1,0 +1,15 @@
+#JEEP Properties
+#Tue Nov 13 16:57:43 EST 2012
+passwordMySQL=
+isGmailAccount=false
+urlMySQLServer=
+urlPOP3Server=
+passwordPOP3=
+emailAddress=
+portPOP3Server=
+username=
+urlSMTPServer=
+portMySQLServer=
+portSMTPServer=
+userNameMySQL=
+userNamePOP3=

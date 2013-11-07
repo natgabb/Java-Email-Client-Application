@@ -1,0 +1,355 @@
+package jeep.test;
+
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import jeep.data.beans.Contact;
+import jeep.data.beans.MailFolder;
+import jeep.data.beans.MailMessage;
+import jeep.data.mysql.DatabaseController;
+
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+/**
+ * This tests the DatabaseController object class.
+ * 
+ * @author Natacha Gabbamonte 0932340
+ * 
+ */
+public class DatabaseControllerTest {
+
+	private DatabaseController dbController = null;
+
+	/**
+	 * Sets up the DatabaseController for all the test methods.
+	 * 
+	 * @throws Exception
+	 */
+	@Before
+	public void setUp() throws Exception {
+
+		// To test using the localhost
+		// dbController = new DatabaseController("localhost", "3306", "root",
+		// "",
+		// "jeep", null);
+		
+		// To test using waldo.
+		 dbController = new DatabaseController("waldo.dawsoncollege.qc.ca",
+		 "3306", "D0932340", "ptaiders", "d0932340", null);
+	}
+
+	/**
+	 * This tests getting the folder id from a folder name.
+	 */
+	@Test
+	public void getFolderIdFromName1() {
+		assertEquals(1, dbController.getFolderIdFromName("Inbox"));
+	}
+
+	/**
+	 * This tests trying to get a folder id from an non-existent name.
+	 */
+	@Test
+	public void getFolderIdFromName2() {
+		assertEquals(-1,
+				dbController.getFolderIdFromName("This does not exist"));
+	}
+
+	/**
+	 * Tests inserting a valid message.
+	 */
+	@Test
+	public void insertMessage() {
+		Date date = new Date();
+		String mailContent = "Hi me! How are you? " + "Hi me! How are you? "
+				+ "Hi me! How are you? " + "Hi me! How are you? "
+				+ "Hi me! How are you? " + "Hi me! How are you? ";
+		ArrayList<String> emails = new ArrayList<String>();
+		emails.add("person1@mail.com");
+		emails.add("person2@mail.com");
+		MailMessage message = new MailMessage(-1, "natgabb@hotmail.com",
+				emails, emails, emails, "Subject line", mailContent, date, 1);
+		assertTrue(dbController.insertMessage(message));
+	}
+
+	/**
+	 * Tests inserting a message with an invalid folder id.
+	 */
+	@Test
+	public void insertMessage2() {
+		Date date = new Date();
+		String mailContent = "Hi me! How are you? " + "Hi me! How are you? "
+				+ "Hi me! How are you? " + "Hi me! How are you? "
+				+ "Hi me! How are you? " + "Hi me! How are you? ";
+		ArrayList<String> emails = new ArrayList<String>();
+		emails.add("person1@mail.com");
+		emails.add("person2@mail.com");
+		MailMessage message = new MailMessage(-1, "natgabb@hotmail.com",
+				emails, emails, emails, "Subject goes here", mailContent, date,
+				1000);
+		assertFalse(dbController.insertMessage(message));
+	}
+
+	/**
+	 * Tests inserting a valid folder name. (non-existent, this will only work
+	 * once)
+	 */
+	@Ignore
+	@Test
+	public void insertFolder1() {
+		MailFolder folder = new MailFolder(-1, "Test");
+		assertTrue(dbController.insertFolder(folder));
+	}
+
+	/**
+	 * Tests for trying to add a Folder with an already existing name.
+	 */
+	@Test
+	public void insertFolder2() {
+		MailFolder folder = new MailFolder(-1, "Inbox");
+		assertFalse(dbController.insertFolder(folder));
+	}
+
+	/**
+	 * Tests inserting a new Contact.
+	 */
+	@Test
+	public void insertContact() {
+		Contact contact = new Contact(-1, "Nat", "Gabb", "natgabb@hotmail.com",
+				"111-111-1111", "1234 Some Street, Mtl, Qc.",
+				"This is a comment.");
+		assertTrue(dbController.insertContact(contact));
+	}
+
+	/**
+	 * This should delete the message with an existing message.
+	 */
+	@Test
+	public void deleteMessage1() {
+		ArrayList<String> emails = new ArrayList<String>();
+		emails.add("person1@mail.com");
+		emails.add("person2@mail.com");
+		MailMessage message = new MailMessage(-1, "sender@mail.com", emails,
+				emails, emails, "Subject", "This is a message!", new Date(), 1);
+		List<MailMessage> all = dbController.getAllMessages();
+		for (MailMessage m : all)
+			if (m.getSenderEmail().equals(message.getSenderEmail())
+					&& m.getReceiverEmail().equals(message.getReceiverEmail())
+					&& m.getSubject().equals(message.getSubject())
+					&& m.getMessage().equals(message.getSubject())
+					&& m.getMessageDate().equals(message.getMessageDate())) {
+				message = m;
+				break;
+			}
+		assertTrue(dbController.deleteMessage(message.getMessageId()));
+	}
+
+	/**
+	 * This tries to delete a message that doesn't exist.
+	 */
+	@Test
+	public void deleteMessage2() {
+		assertFalse(dbController.deleteMessage(1000));
+	}
+
+	/**
+	 * This should delete a contact.
+	 */
+	@Test
+	public void deleteContact1() {
+		String email = "someone@person.com";
+		Contact contact = new Contact();
+		contact.setEmail(email);
+		dbController.insertContact(contact);
+		List<Contact> all = dbController.getContacts();
+		for (Contact c : all)
+			if (c.getEmail().equals(email))
+				contact = c;
+		assertTrue(dbController.deleteContact(contact.getContactId()));
+	}
+
+	/**
+	 * This should delete a contact that doesn't exist.
+	 */
+	@Test
+	public void deleteContact2() {
+		assertFalse(dbController.deleteContact(1000));
+	}
+
+	/**
+	 * This tries to delete a regular folder using an int.
+	 */
+	@Test
+	public void deleteFolderInt1() {
+		MailFolder folder = new MailFolder(-1, "ThisIsATest");
+		assertTrue(dbController.insertFolder(folder));
+		int id = dbController.getFolderIdFromName("ThisIsATest");
+		assertTrue(dbController.deleteFolder(id));
+	}
+
+	/**
+	 * This tries to delete a regular folder using a String.
+	 */
+	@Test
+	public void deleteFolderString1() {
+		MailFolder folder = new MailFolder(-1, "ThisIsATest");
+		assertTrue(dbController.insertFolder(folder));
+		assertTrue(dbController.deleteFolder("ThisIsATest"));
+	}
+
+	/**
+	 * This tries to delete a special folder using int. (Inbox, Sent, and
+	 * ToSend)
+	 */
+	@Test
+	public void deleteFolderInt2() {
+		// Inbox
+		assertFalse(dbController.deleteFolder(1));
+		// Sent
+		assertFalse(dbController.deleteFolder(2));
+		// ToSend
+		assertFalse(dbController.deleteFolder(3));
+	}
+
+	/**
+	 * This tries to delete a special folder using String. (Inbox, Sent, and
+	 * ToSend)
+	 */
+	@Test
+	public void deleteFolderString2() {
+		// Inbox
+		assertFalse(dbController.deleteFolder("Inbox"));
+		// Sent
+		assertFalse(dbController.deleteFolder("Sent"));
+		// ToSend
+		assertFalse(dbController.deleteFolder("ToSend"));
+	}
+
+	/**
+	 * This tries to delete a folder that can be deleted, but one that contains
+	 * messages. The messages should be deleted. (Using Int method)
+	 */
+	@Test
+	public void deleteFolderInt3() {
+		dbController.insertFolder(new MailFolder(-1, "ThisIsATest"));
+		int folderId = dbController.getFolderIdFromName("ThisIsATest");
+		ArrayList<String> emails = new ArrayList<String>();
+		emails.add("person1@mail.com");
+		emails.add("person2@mail.com");
+		dbController.insertMessage(new MailMessage(-1, "Jo@Bob.com", emails,
+				emails, emails, "Super interesting subject",
+				"Message is super interesting.", new Date(), folderId));
+		assertTrue(dbController.deleteFolder(folderId));
+	}
+
+	/**
+	 * This tries to delete a folder that can be deleted, but one that contains
+	 * messages. The messages should be deleted. (Using String method)
+	 */
+	@Test
+	public void deleteFolderString3() {
+		MailFolder folder = new MailFolder(-1, "ThisIsATest");
+		dbController.insertFolder(folder);
+		int folderId = dbController.getFolderIdFromName(folder.getName());
+		ArrayList<String> emails = new ArrayList<String>();
+		emails.add("person1@mail.com");
+		emails.add("person2@mail.com");
+		dbController.insertMessage(new MailMessage(-1, "Jo@Bob.com", emails,
+				emails, emails, "Super interesting subject",
+				"Message is super interesting.", new Date(), folderId));
+		assertTrue(dbController.deleteFolder("ThisIsATest"));
+	}
+
+	/**
+	 * Tests getting all the messages.
+	 */
+	@Test
+	public void getAllMessages() {
+		List<MailMessage> messages = dbController.getAllMessages();
+		System.out.println("\nNumber of messages: " + messages.size());
+		for (MailMessage m : messages)
+			System.out.println(m);
+	}
+
+	/**
+	 * Tests getting the messages from one folder using a folder id.
+	 */
+	@Test
+	public void getMessagesInFolder1() {
+		List<MailMessage> messages = dbController.getMessagesInFolder(1);
+		System.out.println("\nNumber of messages in inbox: " + messages.size());
+		for (MailMessage m : messages)
+			System.out.println(m);
+	}
+
+	/**
+	 * Tests getting the messages from one folder using a folder name.
+	 */
+	@Test
+	public void getMessagesInFolder2() {
+		List<MailMessage> messages = dbController.getMessagesInFolder("Sent");
+		System.out.println("\nNumber of messages in sent: " + messages.size());
+		for (MailMessage m : messages)
+			System.out.println(m);
+
+	}
+
+	/**
+	 * Tests getting the contacts.
+	 */
+	@Test
+	public void getContacts() {
+		List<Contact> contacts = dbController.getContacts();
+		System.out.println("\nNumber of contacts: " + contacts.size());
+		for (Contact c : contacts)
+			System.out.println(c);
+	}
+
+	/**
+	 * Tests getting the folders.
+	 */
+	@Test
+	public void getFolders() {
+		List<MailFolder> folders = dbController.getFolders();
+		System.out.println("\nNumber of folders: " + folders.size());
+		for (MailFolder f : folders)
+			System.out.println(f);
+	}
+
+	/**
+	 * Tests the emailListToString method.
+	 */
+	@Test
+	public void emailListToString() {
+		ArrayList<String> emails = new ArrayList<String>();
+		emails.add("person1@mail.com");
+		emails.add("person2@hotmail.com");
+		emails.add("person3@gmail.com");
+		assertEquals("person1@mail.com;person2@hotmail.com;person3@gmail.com",
+				DatabaseController.emailListToString(emails));
+	}
+
+	/**
+	 * Tests the emailListToString method.
+	 */
+	@Test
+	public void emailStringToList() {
+		String originalEmails = "person1@mail.com;person2@hotmail.com;person3@gmail.com;";
+		ArrayList<String> emails = new ArrayList<String>();
+		emails.add("person1@mail.com");
+		emails.add("person2@hotmail.com");
+		emails.add("person3@gmail.com");
+		ArrayList<String> result = new ArrayList<String>();
+		result = DatabaseController.emailStringToList(originalEmails);
+		if (result.size() != emails.size())
+			fail("Sizes are not the same, something is wrong.");
+		for (int i = 0; i < result.size(); i++) {
+			assertEquals(emails.get(i), result.get(i));
+		}
+	}
+}

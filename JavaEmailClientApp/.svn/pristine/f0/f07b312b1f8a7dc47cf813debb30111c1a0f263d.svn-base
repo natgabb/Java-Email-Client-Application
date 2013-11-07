@@ -1,0 +1,13 @@
+package jeep.gui;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class NewPanel extends JPanel {
+
+	private static final long serialVersionUID = 7540780360963221291L;
+
+	public NewPanel() {
+		this.add(new JLabel("New Panel"));
+	}
+}

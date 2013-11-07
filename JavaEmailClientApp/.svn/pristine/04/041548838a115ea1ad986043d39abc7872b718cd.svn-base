@@ -1,0 +1,94 @@
+package jeep.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
+import javax.swing.JLabel;
+import javax.swing.JWindow;
+
+import jeep.data.bundles.MessageController;
+import jeep.data.configuration.ConfigurationController;
+
+/**
+ * This is the splash screen for the GUI.
+ * 
+ * @author Natacha Gabbamonte 0932340
+ * 
+ */
+public class SplashScreen extends JWindow {
+
+	private static final long serialVersionUID = -8136385813346276750L;
+	private int duration;
+	private String message;
+	private String image = "images/mail_icon.png";
+	private Logger logger = Logger.getLogger(getClass().getName());
+	static {
+		final InputStream inputStream = MailApp.class
+				.getResourceAsStream("/logging.properties");
+		try {
+			LogManager.getLogManager().readConfiguration(inputStream);
+
+		} catch (final IOException e) {
+			Logger.getAnonymousLogger().severe(
+					"Could not load default logging.properties file");
+			Logger.getAnonymousLogger().severe(e.getMessage());
+		}
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param duration
+	 *            how long the splash screen should display
+	 */
+	public SplashScreen(int duration) {
+		this.duration = duration;
+		ConfigurationController configuration = new ConfigurationController(
+				logger);
+		configuration.loadProperties();
+		String language = configuration.getMailConfig().getLanguage();
+		MessageController messages = new MessageController(
+				Locale.forLanguageTag(language));
+		this.message = messages.getString("splashMessage");
+	}
+
+	/**
+	 * Will display the splash screen for a given amount of time.
+	 */
+	public void showSplash() {
+
+		setBackground(Color.WHITE);
+
+		// Build the splash screen
+		JLabel imageIcon = new JLabel(MailApp.createImageIcon(image));
+		imageIcon.setBackground(Color.WHITE);
+		JLabel messageLabel = new JLabel(message, JLabel.CENTER);
+		messageLabel.setFont(new Font("Sans-Serif", Font.BOLD, 12));
+		add(imageIcon, BorderLayout.CENTER);
+		add(messageLabel, BorderLayout.SOUTH);
+		pack();
+
+		// Centering splash screen.
+		this.setLocationRelativeTo(null);
+
+		// Display it
+		setVisible(true);
+
+		// Sleep for a certain amount of time.
+		try {
+			Thread.sleep(duration);
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Error occured while trying to sleep for "
+					+ duration + " milliseconds in SplashScreen.", e);
+		}
+		setVisible(false);
+		dispose();
+	}
+}

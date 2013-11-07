@@ -1,0 +1,28 @@
+package jeep.test;
+
+import java.util.List;
+
+import jeep.data.beans.Message;
+import jeep.data.mysql.DatabaseController;
+
+import org.junit.Before;
+import org.junit.Test;
+
+public class DatabaseControllerTest {
+
+	private DatabaseController dbController = null;
+
+	@Before
+	public void setUp() throws Exception {
+		dbController = new DatabaseController("localhost", "3306", "root", "",
+				"jeep");
+	}
+
+	@Test
+	public void getAllMessages() {
+		List<Message> messages = dbController.getAllMessages();
+		for (Message m : messages)
+			System.out.println(m);
+	}
+
+}

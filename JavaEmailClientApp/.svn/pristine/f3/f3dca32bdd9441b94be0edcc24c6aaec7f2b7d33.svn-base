@@ -1,0 +1,77 @@
+package jeep.gui;
+
+import java.util.Locale;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import jeep.data.bundles.MessageController;
+
+public class MailApp extends JFrame {
+
+	private static final long serialVersionUID = -6807928585770576304L;
+
+	private static MessageController messages = new MessageController(
+			Locale.getDefault());
+
+	public MailApp() {
+		super();
+
+		try {
+			UIManager
+					.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null,
+					"The look and feel you selected is not supported.",
+					"Look and Feel Error", JOptionPane.INFORMATION_MESSAGE);
+		}
+
+		// initialize();
+		setTitle("JEEP - Mail Application");
+		JPanel panel = new JPanel();
+		JLabel test = new JLabel("Test");
+		panel.add(test);
+		this.add(panel);
+		pack();
+		setLocationRelativeTo(null);
+		// this.addComponentListener(new
+		// FrameSizeListener(this.getPreferredSize()));
+		this.setVisible(true);
+	}
+
+	public static MessageController getMessageController() {
+		return messages;
+	}
+
+	public static void setMessageController(Locale locale) {
+		messages = new MessageController(locale);
+	}
+
+	public static void main(String[] args) {
+		new SplashScreen(5000).showSplash();
+
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				MailApp app = new MailApp();
+				app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			}
+		});
+	}
+
+	public static ImageIcon createImageIcon(String path) {
+		java.net.URL imgURL = MailApp.class.getResource(path);
+		if (imgURL != null) {
+			return new ImageIcon(imgURL);
+		} else {
+			System.err.println("Couldn't find file: " + path);
+			return null;
+		}
+	}
+
+}

@@ -1,0 +1,13 @@
+package jeep.gui;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+public class ContactPanel extends JPanel {
+
+	private static final long serialVersionUID = 98431495187963243L;
+
+	public ContactPanel() {
+		this.add(new JLabel("Contact Panel"));
+	}
+}

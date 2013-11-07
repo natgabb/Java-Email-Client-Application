@@ -1,0 +1,31 @@
+package jeep.test;
+
+import static org.junit.Assert.*;
+
+import java.util.Locale;
+
+import jeep.data.bundles.MessageController;
+
+import org.junit.Before;
+import org.junit.Test;
+
+public class MessageControllerTest {
+
+	@Before
+	public void setUp() throws Exception {
+	}
+
+	@Test
+	public void test() {
+		MessageController m = new MessageController(Locale.getDefault());
+		assertEquals(m.getString("splashMessage"),
+				"This Java Exclusively Email Program (JEEP) was coded by Natacha Gabbamonte.");
+		m = new MessageController(Locale.CANADA);
+		assertEquals(m.getString("splashMessage"),
+				"This Java Exclusively Email Program (JEEP) was coded by Natacha Gabbamonte.");
+		m = new MessageController(Locale.CANADA_FRENCH);
+		assertEquals(m.getString("splashMessage"),
+				"Java Exclusively Email Program (JEEP) à été écrit par Natacha Gabbamonte.");
+	}
+
+}

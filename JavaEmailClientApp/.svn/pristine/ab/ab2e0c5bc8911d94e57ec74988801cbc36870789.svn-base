@@ -1,0 +1,200 @@
+package jeep.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
+import javax.swing.JButton;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+
+import com.mysql.jdbc.Messages;
+
+import jeep.data.beans.MailMessage;
+import jeep.data.bundles.MessageController;
+import jeep.data.mysql.DatabaseController;
+
+public class ViewPanel extends JPanel {
+
+	private static final long serialVersionUID = -2207425570312903903L;
+
+	private MessageTableModel messageTableModel = null;
+	private JTable table = null;
+	private JScrollPane scrollPan = null;
+
+	private MessageController messages = null;
+	private DatabaseController dbController = null;
+
+	JLabel headingLabel = null;
+
+	// SOUTH PANELS
+	private JPanel displayPanel = null;
+	JEditorPane textArea = null;
+	JTextField fromField = null;
+	JTextField sentField = null;
+	JTextField toField = null;
+	JTextField ccField = null;
+
+	public ViewPanel(MessageTableModel messageTableModel,
+			DatabaseController dbController) {
+		this.messageTableModel = messageTableModel;
+		this.dbController = dbController;
+		messages = MailApp.getMessageController();
+		this.setLayout(new BorderLayout());
+		getTable();
+		getDisplayPanel();
+		Font font = new Font("Times New Roman", Font.BOLD, 20);
+		headingLabel = new JLabel(" ", JLabel.CENTER);
+		headingLabel.setFont(font);
+		headingLabel.setIcon(MailApp.createImageIcon("images/view.png"));
+		add(headingLabel, BorderLayout.NORTH);
+		add(scrollPan, BorderLayout.CENTER);
+		add(displayPanel, BorderLayout.SOUTH);
+	}
+
+	private void getTable() {
+
+		if (scrollPan != null)
+			remove(scrollPan);
+
+		table = new JTable(messageTableModel);
+		table.setColumnSelectionAllowed(false);
+		table.setRowSelectionAllowed(true);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setPreferredScrollableViewportSize(new Dimension(600, 200));
+		table.setFillsViewportHeight(true);
+		table.getTableHeader().setReorderingAllowed(false);
+
+		// Create the scroll pane and add the table to it.
+		scrollPan = new JScrollPane(table);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				MailMessage message = messageTableModel.getMailMessage(table
+						.getSelectedRow());
+				if (message != null)
+					setDisplayPanel(message);
+			}
+		});
+	}
+
+	private void getDisplayPanel() {
+		displayPanel = new JPanel();
+		displayPanel.setLayout(new GridBagLayout());
+
+		JLabel label;
+
+		// FROM label & field
+		label = new JLabel(messages.getString("view_from"));
+		fromField = new JTextField(30);
+		fromField.setEditable(false);
+		displayPanel.add(label, MailApp.makeConstraints(0, 0, 1, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+		displayPanel.add(fromField, MailApp.makeConstraints(1, 0, 3, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// SENT label & field
+		label = new JLabel(messages.getString("view_sent"));
+		sentField = new JTextField(30);
+		sentField.setEditable(false);
+		displayPanel.add(label, MailApp.makeConstraints(0, 1, 1, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		displayPanel.add(sentField, MailApp.makeConstraints(1, 1, 3, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// TO label & field
+		label = new JLabel(messages.getString("view_to"));
+		toField = new JTextField(30);
+		toField.setEditable(false);
+		displayPanel.add(label, MailApp.makeConstraints(0, 2, 1, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		displayPanel.add(toField, MailApp.makeConstraints(1, 2, 3, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// CC label & field
+		label = new JLabel(messages.getString("view_cc"));
+		ccField = new JTextField(30);
+		ccField.setEditable(false);
+		displayPanel.add(label, MailApp.makeConstraints(0, 3, 1, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		displayPanel.add(ccField, MailApp.makeConstraints(1, 3, 3, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// EditorPane
+		textArea = new JEditorPane();
+		textArea.setEditable(false);
+		textArea.setPreferredSize(new Dimension(500, 100));
+		textArea.setMinimumSize(new Dimension(500, 100));
+		textArea.setMaximumSize(new Dimension(500, 100));
+
+		// Put it inside a ScrollPane
+		JScrollPane scroll = new JScrollPane(textArea);
+
+		displayPanel.add(scroll, MailApp.makeConstraints(0, 4, 4, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.BOTH));
+
+		// Reply button
+		JButton replyButton = new JButton(messages.getString("view_reply"));
+		replyButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+			}
+
+		});
+		displayPanel.add(replyButton, MailApp.makeConstraints(0, 5, 2, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.NONE));
+
+		// Delete button
+		JButton deleteButton = new JButton(messages.getString("view_delete"));
+		deleteButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int row = table.getSelectedRow();
+				if (row != -1) {
+					MailMessage message = messageTableModel.getMailMessage(row);
+					dbController.deleteMessage(message.getMessageId());
+					messageTableModel.loadData(dbController
+							.getMessagesInFolder(headingLabel.getText()));
+					setDisplayPanel(new MailMessage());
+				}
+			}
+
+		});
+		displayPanel.add(deleteButton, MailApp.makeConstraints(2, 5, 2, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.NONE));
+	}
+
+	private void setDisplayPanel(MailMessage message) {
+		fromField.setText(message.getSenderEmail());
+		if (message.getMessageDate() != null)
+			sentField.setText(message.getMessageDate().toString());
+		else
+			sentField.setText("");
+		toField.setText(DatabaseController.emailListToString(message
+				.getReceiverEmail()));
+		ccField.setText(DatabaseController.emailListToString(message.getCc()));
+		textArea.setText(message.getMessage());
+	}
+
+	public void setHeading(String heading) {
+		headingLabel.setText(heading);
+	}
+
+}

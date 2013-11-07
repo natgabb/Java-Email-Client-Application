@@ -1,0 +1,17 @@
+<html>
+<head>
+<title>Contacts Button</title>
+</head>
+<body class="doc">
+	<h1>Contacts Button</h1>
+	<br>
+	<p align="center">
+		<img src="../jeep/gui/images/contacts.png"><br> <em>Contacts
+			button</em>
+	</p>
+	<br>
+
+	<p>The Contacts button allows you to create new contacts and modify
+		existing ones, for easy reference when creating new messages.</p>
+</body>
+</html>

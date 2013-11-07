@@ -1,0 +1,18 @@
+# English Canada
+splashMessage = This Java Exclusively Email Program (JEEP) was coded by Natacha Gabbamonte.
+applicationTitle = JEEP - Mail Application
+settings_general = General
+settings_name = Name:
+settings_email = E-mail:
+settings_password = Password:
+settings_language = Language:
+settings_POP3 = POP3
+settings_urlPOP3 = URL of POP3 Server:
+settings_portPOP3 = Port # of POP3 Server:
+settings_usernamePOP3 = Login for POP3 Server:
+setting_SMTP = SMTP
+settings_urlSMTP = URL of SMTP Server:
+settings_portSMTP = Port # of SMTP Server:
+settings_other = Other
+settings_usingGmail = Using a Gmail account?
+settings_needsSMTPAuth = Needs SMTP Authorization?

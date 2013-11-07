@@ -1,0 +1,130 @@
+package jeep.data.configuration;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import jeep.data.beans.MailConfig;
+
+/**
+ * The ConfigurationController retreives properties from file and saves
+ * properties to file.
+ * 
+ * @author 0932340
+ * 
+ */
+public class ConfigurationController {
+
+	private static final String PROP_FILE = "MyPropFile.ini";
+	private MailConfig mailConfig = null;
+	private Properties prop = null;
+	private Logger logger = null;
+
+	/**
+	 * Constructor. Sets up new MailConfig and new Properties.
+	 */
+	public ConfigurationController() {
+		super();
+		logger = Logger.getLogger(getClass().getName());
+		mailConfig = new MailConfig();
+		prop = new Properties();
+	}
+
+	/**
+	 * Loads the values currently stored in file.
+	 * 
+	 * @return Whether loading the values from file was successful.
+	 */
+	public boolean loadProperties() {
+		boolean returnValue = true;
+
+		FileInputStream propFileStream = null;
+		File propFile = new File(PROP_FILE);
+		if (propFile.exists()) {
+			try {
+				propFileStream = new FileInputStream(propFile);
+				prop.load(propFileStream);
+				propFileStream.close();
+				mailConfig.setUsername(prop.getProperty("username"));
+				mailConfig.setEmailAddress(prop.getProperty("emailAddress"));
+				mailConfig.setUrlPOP3Server(prop.getProperty("urlPOP3Server"));
+				mailConfig.setUrlSMTPServer(prop.getProperty("urlSMTPServer"));
+				mailConfig
+						.setUrlMySQLServer(prop.getProperty("urlMySQLServer"));
+				mailConfig
+						.setPortPOP3Server(prop.getProperty("portPOP3Server"));
+				mailConfig
+						.setPortSMTPServer(prop.getProperty("portSMTPServer"));
+				mailConfig.setPortMySQLServer(prop
+						.getProperty("portMySQLServer"));
+				mailConfig.setIsGmailAccount(new Boolean(prop
+						.getProperty("isGmailAccount")));
+				mailConfig.setUserNamePOP3(prop.getProperty("userNamePOP3"));
+				mailConfig.setPasswordPOP3(prop.getProperty("passwordPOP3"));
+				mailConfig.setUserNameMySQL(prop.getProperty("userNameMySQL"));
+				mailConfig.setPasswordMySQL(prop.getProperty("passwordMySQL"));
+			} catch (FileNotFoundException e1) {
+				logger.log(Level.SEVERE, "File not found", e1);
+				returnValue = false;
+			} catch (IOException e2) {
+				logger.log(Level.SEVERE, "Error reading file", e2);
+				returnValue = false;
+			}
+		} else
+			returnValue = false;
+		return returnValue;
+	}
+
+	/**
+	 * Writes the properties to file.
+	 * 
+	 * @return Whether writing the properties to file was successful.
+	 */
+	public boolean writeProperties() {
+		boolean returnValue = true;
+		prop.setProperty("username", mailConfig.getUsername());
+		prop.setProperty("emailAddress", mailConfig.getEmailAddress());
+		prop.setProperty("urlPOP3Server", mailConfig.getUrlPOP3Server());
+		prop.setProperty("urlSMTPServer", mailConfig.getUrlSMTPServer());
+		prop.setProperty("urlMySQLServer", mailConfig.getUrlMySQLServer());
+		prop.setProperty("portPOP3Server", mailConfig.getPortPOP3Server());
+		prop.setProperty("portSMTPServer", mailConfig.getPortSMTPServer());
+		prop.setProperty("portMySQLServer", mailConfig.getPortMySQLServer());
+		prop.setProperty("isGmailAccount", mailConfig.getIsGmailAccount()
+				.toString());
+		prop.setProperty("userNamePOP3", mailConfig.getUserNamePOP3());
+		prop.setProperty("passwordPOP3", mailConfig.getPasswordPOP3());
+		prop.setProperty("userNameMySQL", mailConfig.getUserNameMySQL());
+		prop.setProperty("passwordMySQL", mailConfig.getPasswordMySQL());
+
+		FileOutputStream propFileStream = null;
+		try {
+			propFileStream = new FileOutputStream(PROP_FILE);
+			prop.store(propFileStream, "JEEP Properties");
+			propFileStream.close();
+		} catch (FileNotFoundException e1) {
+			logger.log(Level.SEVERE, "File not found", e1);
+			returnValue = false;
+		} catch (IOException e2) {
+			logger.log(Level.SEVERE, "File not found", e2);
+			returnValue = false;
+		}
+		return returnValue;
+	}
+
+	/**
+	 * Returns the MailConfig object which contains all the configuration for
+	 * the JEEP.
+	 * 
+	 * @return The MailConfig object
+	 */
+	public MailConfig getMailConfig() {
+		return mailConfig;
+	}
+
+}

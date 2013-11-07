@@ -1,0 +1,18 @@
+#JEEP Properties
+#Fri Dec 07 15:49:40 EST 2012
+isSMTPAuth=true
+passwordMySQL=ptaiders
+isGmailAccount=false
+urlMySQLServer=waldo.dawsoncollege.qc.ca
+urlPOP3Server=waldo.dawsoncollege.qc.ca
+passwordPOP3=FD48W07998
+emailAddress=M0932340@waldo.dawsoncollege.qc.ca
+portPOP3Server=110
+databaseMySQL=d0932340
+username=Nat Gabb
+language=en-CA
+urlSMTPServer=waldo.dawsoncollege.qc.ca
+portSMTPServer=25
+portMySQLServer=3306
+userNameMySQL=D0932340
+userNamePOP3=M0932340@CompSci

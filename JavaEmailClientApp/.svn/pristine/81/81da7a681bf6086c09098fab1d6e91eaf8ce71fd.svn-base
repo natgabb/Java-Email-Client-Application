@@ -1,0 +1,18 @@
+<html>
+<head>
+<title>Send and Receive Button</title>
+</head>
+<body class="doc">
+	<h1>Send and Receive Button</h1>
+	<br>
+	<p align="center">
+		<img src="images/sendAndReceive.png"><br> <em>Send &
+			Receive button</em>
+	</p>
+	<br>
+
+	<p>The Send & Receive button allows you to send out a request to
+		your mail provider to retrieve your latest e-mails. It also sends out
+		all the e-mails that are currently stored in the ToSend folder.</p>
+</body>
+</html>

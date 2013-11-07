@@ -1,0 +1,509 @@
+package jeep.gui;
+
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import jeep.data.beans.Contact;
+import jeep.data.beans.MailConfig;
+import jeep.data.beans.MailMessage;
+import jeep.data.bundles.MessageController;
+import jeep.data.configuration.ConfigurationController;
+import jeep.data.mysql.DatabaseController;
+import jeep.mail.MailReceiveController;
+import jeep.mail.MailSendController;
+
+/**
+ * This is the main GUI app for the JEEP application.
+ * 
+ * @author Natacha Gabbamonte 0932340
+ * 
+ */
+public class MailApp extends JFrame {
+	private Logger logger = Logger.getLogger(getClass().getName());
+
+	public static final boolean DEBUG = true;
+	private static final long serialVersionUID = -6807928585770576304L;
+
+	private static MessageController messages = null;
+	private static ConfigurationController configuration = null;
+
+	private DatabaseController dbController = null;
+
+	public final static String VIEW_PANEL = "View";
+	public final static String NEW_PANEL = "New";
+	public final static String CONTACT_PANEL = "Contact";
+	public final static String SETTINGS_PANEL = "Settings";
+
+	private TreePanel treePanel = null;
+
+	private JPanel cardPanel = null;
+	private ViewPanel viewPanel = null;
+	private NewPanel newPanel = null;
+	private ContactPanel contactPanel = null;
+	private SettingsPanel settingsPanel = null;
+
+	private MessageTableModel messageTableModel = null;
+	private ContactTableModel contactTableModel = null;
+
+	private boolean connected = false;
+
+	/**
+	 * Sets up the main app.
+	 */
+	public MailApp() {
+		super();
+
+		try {
+			UIManager
+					.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null,
+					"The look and feel you selected is not supported.",
+					"Look and Feel Error", JOptionPane.INFORMATION_MESSAGE);
+		}
+		populateGUI();
+	}
+
+	/**
+	 * Retrieves the person's e-mails from their email provider's POP3 server.
+	 * 
+	 * @return Whether it was successful or not.
+	 */
+	public boolean retrieveEmails() {
+		this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		boolean successful = false;
+
+		MailReceiveController mailController = new MailReceiveController(
+				configuration.getMailConfig());
+		ArrayList<MailMessage> msgs = mailController.getMail();
+		if (msgs != null) {
+			successful = true;
+			for (MailMessage m : msgs) {
+				dbController.insertMessage(m);
+			}
+			ArrayList<MailMessage> messages = dbController
+					.getMessagesInFolder(1);
+			messageTableModel.loadData(messages);
+			viewPanel.setHeading("Inbox");
+		}
+
+		this.setCursor(Cursor.getDefaultCursor());
+		return successful;
+	}
+
+	/**
+	 * Sends all the e-mails in the ToSend folder to it's destination.
+	 * 
+	 * @return Whether it was successful.
+	 */
+	public boolean sendEmailsInToSend() {
+		System.out.println("\n\nABOUT TO SEND EMAILS\nMail Config:\n"
+				+ configuration.getMailConfig() + "\n\n");
+		this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		boolean isValid = true;
+
+		ArrayList<MailMessage> messagesToSend = dbController
+				.getMessagesInFolder(NewPanel.TOSEND_FOLDER);
+		MailSendController mailController = new MailSendController(
+				configuration.getMailConfig());
+		for (MailMessage message : messagesToSend) {
+			System.out.println("\n\nTRYING TO SEND: " + message + "\n\n");
+			if (!mailController.sendMail(message))
+				isValid = false;
+		}
+		if (isValid) {
+			// Change the folder id from TOSEND to SENT.
+			MailMessage message = null;
+			for (int i = 0; i < messagesToSend.size(); i++) {
+				message = messagesToSend.get(i);
+				message.setFolderId(NewPanel.SENT_FOLDER);
+				dbController.updateMessage(message);
+			}
+		}
+
+		this.setCursor(Cursor.getDefaultCursor());
+		return isValid;
+	}
+
+	/**
+	 * This populates the frame with all the components.
+	 */
+	public void populateGUI() {
+		this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		connected = false;
+		this.getContentPane().removeAll();
+
+		MailConfig mailConfig = configuration.getMailConfig();
+
+		// Create the models
+		messageTableModel = new MessageTableModel(messages);
+		contactTableModel = new ContactTableModel(messages);
+
+		dbController = new DatabaseController(mailConfig.getUrlMySQLServer(),
+				mailConfig.getPortMySQLServer(), mailConfig.getUserNameMySQL(),
+				mailConfig.getPasswordMySQL(), mailConfig.getDatabaseMySQL());
+
+		this.setPreferredSize(new Dimension(800, 600));
+		// this.setLayout(new BorderLayout());
+		setTitle(getMessageController().getString("applicationTitle"));
+
+		// Add the MenuPanel
+		setJMenuBar(createMenuBar());
+
+		add(createToolBar(), BorderLayout.NORTH);
+
+		// Add the content panel
+		createCardLayoutPanel();
+		add(cardPanel, BorderLayout.CENTER);
+
+		// Add the TreePanel
+		treePanel = new TreePanel(this, viewPanel, dbController,
+				messageTableModel);
+		add(treePanel, BorderLayout.WEST);
+
+		pack();
+		this.setVisible(true);
+		setLocationRelativeTo(null);
+
+		ArrayList<Contact> contacts = dbController.getContacts();
+		contactTableModel.loadData(contacts);
+
+		connected = retrieveEmails();
+		if (!connected) {
+			JOptionPane
+					.showMessageDialog(
+							MailApp.this,
+							"There was an error while trying to retrieve your new e-mails. Please check your settings.",
+							"Error", JOptionPane.ERROR_MESSAGE);
+			this.changeDisplayPanel(SETTINGS_PANEL);
+		}
+
+		this.setCursor(Cursor.getDefaultCursor());
+		// this.addComponentListener(new
+		// FrameSizeListener(this.getPreferredSize()));
+	}
+
+	ActionListener menuBarListener = new ActionListener() {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String panel = ((JMenuItem) e.getSource()).getActionCommand();
+			switch (panel) {
+			case "Send&Receive":
+				sendAndReceive();
+				break;
+			case "Exit":
+				System.exit(0);
+				break;
+			}
+		}
+
+	};
+
+	ActionListener toolBarListener = new ActionListener() {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String panel = ((JButton) e.getSource()).getActionCommand();
+			if (panel.equals("SendAndReceive")) {
+				sendAndReceive();
+			} else
+				MailApp.this.changeDisplayPanel(panel);
+		}
+
+	};
+
+	private void sendAndReceive() {
+		if (!retrieveEmails()) {
+			JOptionPane
+					.showMessageDialog(
+							MailApp.this,
+							"There was an error while trying to retrieve your new e-mails. Please check your settings.",
+							"Error", JOptionPane.ERROR_MESSAGE);
+			MailApp.this.changeDisplayPanel(SETTINGS_PANEL);
+		}
+		if (!sendEmailsInToSend()) {
+			JOptionPane
+					.showMessageDialog(
+							MailApp.this,
+							"There was an error while trying to send your messages. Please check your settings.",
+							"Error", JOptionPane.ERROR_MESSAGE);
+			MailApp.this.changeDisplayPanel(SETTINGS_PANEL);
+		}
+	}
+
+	private JMenuBar createMenuBar() {
+		JMenuBar menuBar;
+		JMenu menu;
+		JMenuItem menuItem;
+
+		menuBar = new JMenuBar();
+
+		menu = new JMenu("File");
+		menu.setMnemonic(KeyEvent.VK_F);
+		menu.getAccessibleContext().setAccessibleDescription("The file menu");
+		menu.setToolTipText("The file menu");
+
+		menuBar.add(menu);
+
+		menuItem = new JMenuItem("Send all & Receive", KeyEvent.VK_S);
+
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
+				ActionEvent.ALT_MASK));
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"This is the Send all & Receive menu item.");
+		menuItem.setToolTipText("This is the Send all & Receive menu item");
+		menuItem.setActionCommand("Send&Receive");
+		menuItem.addActionListener(menuBarListener);
+
+		menu.add(menuItem);
+
+		// Draw a separator line in the menu
+		menu.addSeparator();
+
+		menuItem = new JMenuItem("Exit", KeyEvent.VK_X);
+
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
+				ActionEvent.ALT_MASK));
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"This is the Exit menu item.");
+		menuItem.setToolTipText("This is the Exit menu item");
+		menuItem.setActionCommand("Exit");
+		menuItem.addActionListener(menuBarListener);
+
+		menu.add(menuItem);
+
+		return menuBar;
+	}
+
+	private JToolBar createToolBar() {
+		JToolBar toolBar = new JToolBar();
+		JButton button = null;
+
+		// Send & Receive Button
+		button = makeToolBarButton("sendAndReceive", "SendAndReceive",
+				"Send mail and receive", "Send&Receive");
+		toolBar.add(button);
+
+		// View Button
+		button = makeToolBarButton("view", VIEW_PANEL, "View your inbox",
+				"View");
+		toolBar.add(button);
+
+		// New Button
+		button = makeToolBarButton("new", NEW_PANEL, "Create a new message",
+				"New");
+		toolBar.add(button);
+
+		// Contacts Button
+		button = makeToolBarButton("contacts", CONTACT_PANEL,
+				"View your contacts", "Contacts");
+		toolBar.add(button);
+
+		// Settings Button
+		button = makeToolBarButton("settings", SETTINGS_PANEL,
+				"Change your settings", "Settings");
+		toolBar.add(button);
+
+		toolBar.setFloatable(false);
+		toolBar.setRollover(false);
+
+		return toolBar;
+	}
+
+	/*
+	 * Create the buttons that will be placed in the tool bar.
+	 */
+	private JButton makeToolBarButton(String imageName, String actionCommand,
+			String toolTipText, String altText) {
+
+		// Look for the image.
+		String imgLocation = "images/" + imageName + ".png";
+		URL imageURL = MailApp.class.getResource(imgLocation);
+
+		// Create and initialize the button.
+		JButton button = new JButton();
+		button.setActionCommand(actionCommand);
+		button.setToolTipText(toolTipText);
+		button.addActionListener(toolBarListener);
+
+		if (imageURL != null) { // image found
+			button.setIcon(new ImageIcon(imageURL, altText));
+		} else { // no image found
+			button.setText(altText);
+			logger.log(Level.WARNING, "Resource not found: " + imgLocation);
+		}
+
+		return button;
+	}
+
+	/**
+	 * This creates the card panel which contains the main GUI.
+	 */
+	private void createCardLayoutPanel() {
+		cardPanel = new JPanel();
+		cardPanel.setLayout(new CardLayout(5, 5));
+
+		// Panels
+		viewPanel = new ViewPanel(messageTableModel, dbController);
+		newPanel = new NewPanel(contactTableModel, dbController, configuration);
+		contactPanel = new ContactPanel(contactTableModel, dbController);
+		settingsPanel = new SettingsPanel(this);
+
+		cardPanel.add(viewPanel, VIEW_PANEL);
+		cardPanel.add(newPanel, NEW_PANEL);
+		cardPanel.add(contactPanel, CONTACT_PANEL);
+		cardPanel.add(settingsPanel, SETTINGS_PANEL);
+	}
+
+	/**
+	 * Changes the panel in the card panel that is currently being displayed.
+	 * 
+	 * @param panel
+	 *            The panel to display.
+	 */
+	public void changeDisplayPanel(String panel) {
+		((CardLayout) cardPanel.getLayout()).show(cardPanel, panel);
+	}
+
+	/**
+	 * Main method of the application. Gets the configuration for the whole app,
+	 * and the messages. It displays the splash screen first and then the main
+	 * app.
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// Loads the configuration properties.
+		configuration = new ConfigurationController();
+		configuration.loadProperties();
+		MailConfig mailConfig = configuration.getMailConfig();
+
+		// Loads the messages from the language stored in the configurations.
+		messages = new MessageController(Locale.forLanguageTag(mailConfig
+				.getLanguage()));
+
+		// Displays Splash screen for 5 seconds.
+		new SplashScreen(5000).showSplash();
+
+		// Displays main app.
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				MailApp app = new MailApp();
+				app.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				app.setIconImage(createImageIcon("images/view.png").getImage());
+			}
+		});
+	}
+
+	/**
+	 * Returns the MessageController which contains all the strings for the
+	 * application.
+	 * 
+	 * @return The MessageController.
+	 */
+	public static MessageController getMessageController() {
+		return messages;
+	}
+
+	/**
+	 * Sets the MessageController with a new locale.
+	 * 
+	 * @param locale
+	 *            The locale
+	 */
+	public static void setMessageController(Locale locale) {
+		messages = new MessageController(locale);
+	}
+
+	/**
+	 * Returns the ConfigurationController.
+	 * 
+	 * @return The controller.
+	 */
+	public static ConfigurationController getConfiguration() {
+		return configuration;
+	}
+
+	/**
+	 * Creates an ImageIcon from a path.
+	 * 
+	 * @param path
+	 *            The path
+	 * @return The ImageIcon
+	 */
+	public static ImageIcon createImageIcon(String path) {
+		java.net.URL imgURL = MailApp.class.getResource(path);
+		if (imgURL != null) {
+			return new ImageIcon(imgURL);
+		} else {
+			System.err.println("Couldn't find file: " + path);
+			return null;
+		}
+	}
+
+	/**
+	 * Creates a GridBagConstraints object with the sent in values.
+	 * 
+	 * @param gridx
+	 *            The column
+	 * @param gridy
+	 *            The row
+	 * @param gridwidth
+	 *            The width
+	 * @param gridheight
+	 *            The height
+	 * @return The GridBagConstraints object
+	 */
+	public static GridBagConstraints makeConstraints(int gridx, int gridy,
+			int gridwidth, int gridheight, int[] insets, double weightx,
+			double weighty, int fill) {
+		GridBagConstraints constraints = new GridBagConstraints();
+
+		constraints.gridheight = gridheight;
+		constraints.gridwidth = gridwidth;
+		constraints.gridx = gridx;
+		constraints.gridy = gridy;
+
+		// Default for all the components.
+		constraints.insets = new Insets(insets[0], insets[1], insets[2],
+				insets[3]);
+		constraints.weightx = weightx;
+		constraints.weighty = weighty;
+		constraints.fill = fill;
+
+		return constraints;
+	}
+
+}

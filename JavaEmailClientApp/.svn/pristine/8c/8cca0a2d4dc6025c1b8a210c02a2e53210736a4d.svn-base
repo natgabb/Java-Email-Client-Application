@@ -1,0 +1,240 @@
+package jeep.gui;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Locale;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+
+import jeep.data.beans.MailConfig;
+import jeep.data.bundles.MessageController;
+import jeep.data.configuration.ConfigurationController;
+
+/**
+ * This panel is used for inputed the configuration.
+ * 
+ * @author Natacha Gabbamonte 0932340
+ * 
+ */
+public class SettingsPanel extends JPanel {
+
+	private static final long serialVersionUID = -1452386040565196827L;
+
+	private MessageController messages = null;
+	private ConfigurationController configuration = null;
+
+	// The fields of the form
+	private JTextField nameTextField = null;
+	private JTextField emailTextField = null;
+	private JPasswordField passwordTextField = null;
+
+	private JComboBox<String> languageComboBox = null;
+
+	private JTextField urlPOP3TextField = null;
+	private JTextField portPOP3TextField = null;
+	private JTextField usernamePOP3TextField = null;
+
+	private JTextField urlSMTPTextField = null;
+	private JTextField portSMTPTextField = null;
+
+	private JCheckBox isGmailCheckBox = null;
+	private JCheckBox isSMTPAuthCheckBox = null;
+
+	private JButton saveChangesButton = null;
+	private JButton resetChangesButton = null;
+
+	/**
+	 * Initializes the settings panel.
+	 */
+	public SettingsPanel(ConfigurationController configuration) {
+		this.configuration = configuration;
+		messages = MailApp.getMessageController();
+		GridBagLayout gridBagLayout = new GridBagLayout();
+		this.setLayout(gridBagLayout);
+
+		Font headingFont = new Font("Arial", 30, Font.BOLD);
+
+		// General Heading
+		JLabel heading = new JLabel();
+		heading.setFont(headingFont);
+		heading = new JLabel(messages.getString("settings_general"),
+				JLabel.CENTER);
+		add(heading, MailApp.makeConstraints(0, 0, 4, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// Name fields
+		JLabel tempLabel = new JLabel(messages.getString("settings_name"));
+		add(tempLabel, MailApp.makeConstraints(0, 1, 1, 1, new int[] { 1, 1, 1,
+				1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		nameTextField = new JTextField();
+		add(nameTextField, MailApp.makeConstraints(1, 1, 3, 1, new int[] { 1,
+				1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// Email fields
+		tempLabel = new JLabel(messages.getString("settings_email"));
+		add(tempLabel, MailApp.makeConstraints(0, 2, 1, 1, new int[] { 1, 1, 1,
+				1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		emailTextField = new JTextField();
+		add(emailTextField, MailApp.makeConstraints(1, 2, 3, 1, new int[] { 1,
+				1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// Password fields
+		tempLabel = new JLabel(messages.getString("settings_password"));
+		add(tempLabel, MailApp.makeConstraints(0, 3, 1, 1, new int[] { 1, 1, 1,
+				1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		passwordTextField = new JPasswordField();
+		add(passwordTextField, MailApp.makeConstraints(1, 3, 3, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// Language fields
+		tempLabel = new JLabel(messages.getString("settings_language"));
+		add(tempLabel, MailApp.makeConstraints(0, 4, 1, 1, new int[] { 1, 1, 1,
+				1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		languageComboBox = new JComboBox<String>();
+		add(languageComboBox, MailApp.makeConstraints(1, 4, 3, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// POP3 Heading
+		heading = new JLabel(messages.getString("settings_POP3"), JLabel.CENTER);
+		add(heading, MailApp.makeConstraints(0, 5, 4, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// POP3 URL fields
+		tempLabel = new JLabel(messages.getString("settings_urlPOP3"));
+		add(tempLabel, MailApp.makeConstraints(0, 6, 1, 1, new int[] { 1, 1, 1,
+				1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		urlPOP3TextField = new JTextField();
+		add(urlPOP3TextField, MailApp.makeConstraints(1, 6, 3, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// POP3 Port # fields
+		tempLabel = new JLabel(messages.getString("settings_portPOP3"));
+		add(tempLabel, MailApp.makeConstraints(0, 7, 1, 1, new int[] { 1, 1, 1,
+				1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		portPOP3TextField = new JTextField();
+		add(portPOP3TextField, MailApp.makeConstraints(1, 7, 3, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// POP3 Port # fields
+		tempLabel = new JLabel(messages.getString("settings_usernamePOP3"));
+		add(tempLabel, MailApp.makeConstraints(0, 8, 1, 1, new int[] { 1, 1, 1,
+				1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		usernamePOP3TextField = new JTextField();
+		add(usernamePOP3TextField, MailApp.makeConstraints(1, 8, 3, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// SMTP Heading
+		heading = new JLabel(messages.getString("setting_SMTP"), JLabel.CENTER);
+		add(heading, MailApp.makeConstraints(0, 9, 4, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// SMTP URL fields
+		tempLabel = new JLabel(messages.getString("settings_urlSMTP"));
+		add(tempLabel, MailApp.makeConstraints(0, 10, 1, 1, new int[] { 1, 1,
+				1, 1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		urlSMTPTextField = new JTextField();
+		add(urlSMTPTextField, MailApp.makeConstraints(1, 10, 3, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// SMTP Port # fields
+		tempLabel = new JLabel(messages.getString("settings_portSMTP"));
+		add(tempLabel, MailApp.makeConstraints(0, 11, 1, 1, new int[] { 1, 1,
+				1, 1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		portSMTPTextField = new JTextField();
+		add(portSMTPTextField, MailApp.makeConstraints(1, 11, 3, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// Other Heading
+		heading = new JLabel(messages.getString("settings_other"),
+				JLabel.CENTER);
+		add(heading, MailApp.makeConstraints(0, 12, 4, 1, new int[] { 1, 1, 1,
+				1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// Using Gmail fields
+		tempLabel = new JLabel(messages.getString("settings_usingGmail"));
+		add(tempLabel, MailApp.makeConstraints(0, 13, 1, 1, new int[] { 1, 1,
+				1, 1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		isGmailCheckBox = new JCheckBox();
+		add(isGmailCheckBox, MailApp.makeConstraints(1, 13, 3, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.NONE));
+
+		// Needs SMTP Authorization fields
+		tempLabel = new JLabel(messages.getString("settings_needsSMTPAuth"));
+		add(tempLabel, MailApp.makeConstraints(0, 14, 1, 1, new int[] { 1, 1,
+				1, 1 }, 0.2, 1, GridBagConstraints.HORIZONTAL));
+		isSMTPAuthCheckBox = new JCheckBox();
+		add(isSMTPAuthCheckBox, MailApp.makeConstraints(1, 14, 3, 1, new int[] {
+				1, 1, 1, 1 }, 1, 1, GridBagConstraints.NONE));
+
+		// Saves Changes and Reset buttons (in a new panel)
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setLayout(new GridBagLayout());
+		Dimension dimension = new Dimension(50, 35);
+		saveChangesButton = new JButton(
+				messages.getString("settings_savechanges"));
+		saveChangesButton.setPreferredSize(dimension);
+		buttonPanel.add(saveChangesButton, MailApp.makeConstraints(0, 0, 1, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.BOTH));
+		resetChangesButton = new JButton(
+				messages.getString("settings_resetchanges"));
+		resetChangesButton.setPreferredSize(dimension);
+		buttonPanel.add(resetChangesButton, MailApp.makeConstraints(1, 0, 1, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.BOTH));
+		add(buttonPanel, MailApp.makeConstraints(0, 15, 4, 1, new int[] { 1, 1,
+				1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		populateFromConfigs();
+
+	}
+
+	private void populateFromConfigs() {
+		MailConfig mailConfig = configuration.getMailConfig();
+		nameTextField.setText(mailConfig.getUsername());
+		emailTextField.setText(mailConfig.getEmailAddress());
+		passwordTextField.setText(mailConfig.getPasswordPOP3());
+
+		String selectedLanguage = null;
+		String savedLanguage = mailConfig.getLanguage();
+		Locale[] locales = Locale.getAvailableLocales();
+		ArrayList<String> languages = new ArrayList<String>();
+		for (Locale l : locales) {
+			String language = l.getLanguage();
+			String country = l.getCountry();
+			if (country != null && country != "") {
+				if (country != null && country != "")
+					language += "-" + country;
+				String s = l.getDisplayCountry() + " ("
+						+ l.getDisplayLanguage() + ") [" + language + "]";
+				if (language.equals(savedLanguage))
+					selectedLanguage = s;
+				languages.add(s);
+			}
+		}
+		Collections.sort(languages);
+		for (String l : languages)
+			languageComboBox.addItem(l);
+		if (selectedLanguage != null)
+			languageComboBox.setSelectedItem(selectedLanguage);
+
+		urlPOP3TextField.setText(mailConfig.getUrlPOP3Server());
+		portPOP3TextField.setText(mailConfig.getPortPOP3Server());
+		usernamePOP3TextField.setText(mailConfig.getUserNamePOP3());
+
+		urlSMTPTextField.setText(mailConfig.getUrlSMTPServer());
+		portSMTPTextField.setText(mailConfig.getPortSMTPServer());
+
+		isGmailCheckBox.setSelected(mailConfig.getIsGmailAccount());
+		isSMTPAuthCheckBox.setSelected(mailConfig.getIsSMTPAuth());
+	}
+}

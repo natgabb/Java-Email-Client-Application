@@ -1,0 +1,16 @@
+<html>
+<head>
+<title>New Message Button</title>
+</head>
+<body class="doc">
+	<h1>New Message Button</h1>
+	<br>
+	<p align="center">
+		<img src="../jeep/gui/images/new.png"><br> <em>New message button</em>
+	</p>
+	<br>
+
+	<p>The New Message button allows you create a new message to send
+		to various people.</p>
+</body>
+</html>

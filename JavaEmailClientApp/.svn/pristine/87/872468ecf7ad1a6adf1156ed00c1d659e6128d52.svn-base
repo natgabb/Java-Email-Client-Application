@@ -1,0 +1,17 @@
+#JEEP Properties
+#Thu Nov 22 12:55:04 EST 2012
+passwordMySQL=ptaiders
+isGmailAccount=false
+urlMySQLServer=waldo.dawsoncollege.qc.ca
+urlPOP3Server=
+passwordPOP3=
+emailAddress=
+portPOP3Server=110
+databaseMySQL=d0932340
+username=
+language=en-CA
+urlSMTPServer=
+userNameMySQL=D0932340
+portSMTPServer=25
+portMySQLServer=3306
+userNamePOP3=

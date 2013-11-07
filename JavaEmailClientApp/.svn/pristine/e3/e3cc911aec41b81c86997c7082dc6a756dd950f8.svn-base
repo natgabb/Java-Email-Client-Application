@@ -1,0 +1,23 @@
+package jeep.test;
+
+import static org.junit.Assert.*;
+import jeep.data.configuration.ConfigurationController;
+
+import org.junit.Before;
+import org.junit.Test;
+
+public class ConfigurationControllerTest {
+
+	@Before
+	public void setUp() throws Exception {
+	}
+
+	@Test
+	public void test() {
+		ConfigurationController confs = new ConfigurationController();
+		assertTrue(confs.loadProperties());
+		assertTrue(confs.writeProperties());
+		System.out.println(confs.getMailConfig());
+	}
+
+}

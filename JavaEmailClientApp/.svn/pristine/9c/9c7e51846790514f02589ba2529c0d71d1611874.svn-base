@@ -1,0 +1,98 @@
+package jeep.gui;
+
+import java.util.ArrayList;
+import java.util.Vector;
+
+import javax.swing.table.AbstractTableModel;
+
+import jeep.data.beans.MailMessage;
+import jeep.data.bundles.MessageController;
+
+public class MessageTableModel extends AbstractTableModel {
+
+	private static final long serialVersionUID = -741654996687365388L;
+
+	private Vector<MailMessage> data = new Vector<MailMessage>();
+	private Vector<String> columnNames = new Vector<String>();
+
+	private String[] headings = new String[3];
+
+	public MessageTableModel(MessageController messages) {
+		headings[0] = messages.getString("table_messages_from");
+		headings[1] = messages.getString("table_messages_subject");
+		headings[2] = messages.getString("table_messages_date");
+		for (String h : headings)
+			columnNames.addElement(h);
+	}
+
+	/**
+	 * @param resultSet
+	 * @return
+	 */
+	public void loadData(ArrayList<MailMessage> newMessages) {
+		data.removeAllElements();
+		for (MailMessage m : newMessages)
+			data.add(m);
+		this.fireTableDataChanged();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.swing.table.AbstractTableModel#getColumnName(int)
+	 */
+	public String getColumnName(int col) {
+		return (String) columnNames.elementAt(col);
+	}
+
+	public MailMessage getMailMessage(int row) {
+		if (row >= 0 && row < data.size())
+			return data.elementAt(row);
+		else
+			return null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.swing.table.TableModel#getRowCount()
+	 */
+	@Override
+	public int getRowCount() {
+		return data.size();
+	}
+
+	@Override
+	public Object getValueAt(int row, int col) {
+		if (row < data.size() && col < columnNames.size())
+			switch (col) {
+			case 0:
+				return data.elementAt(row).getSenderEmail();
+			case 1:
+				return data.elementAt(row).getSubject();
+			case 2:
+				return data.elementAt(row).getMessageDate();
+			}
+		// This should never happen.
+		return null;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.swing.table.AbstractTableModel#isCellEditable(int, int)
+	 */
+	public boolean isCellEditable(int row, int col) {
+		return false;
+	}
+
+	@Override
+	public int getColumnCount() {
+		return columnNames.size();
+	}
+
+	public void removeRowAt(int row) {
+		data.remove(row);
+		this.fireTableDataChanged();
+	}
+}

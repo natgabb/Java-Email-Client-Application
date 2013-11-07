@@ -1,0 +1,281 @@
+package jeep.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.regex.Pattern;
+
+import javax.swing.JButton;
+import javax.swing.JEditorPane;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+
+import jeep.data.beans.Contact;
+import jeep.data.beans.MailMessage;
+import jeep.data.bundles.MessageController;
+import jeep.data.configuration.ConfigurationController;
+import jeep.data.mysql.DatabaseController;
+import jeep.gui.regex.RegexFormatter;
+
+public class NewPanel extends JPanel {
+
+	private static final long serialVersionUID = 7540780360963221291L;
+
+	public static final int TOSEND_FOLDER = 3;
+	public static final int SENT_FOLDER = 2;
+
+	private ContactTableModel contactTableModel = null;
+	private DatabaseController dbController = null;
+	private MessageController messages = null;
+	private ConfigurationController configuration = null;
+
+	JLabel headingLabel = null;
+
+	private JTable table = null;
+	private JScrollPane scrollPan = null;
+
+	private JPanel newMessagePanel = null;
+	JEditorPane textArea = null;
+	JTextField subjectField = null;
+	JTextField toField = null;
+	JTextField ccField = null;
+	JTextField bccField = null;
+	JLabel errorMessage = null;
+
+	private JTextField fieldHasFocus = null;
+
+	public NewPanel(MailApp mailApp) {
+		this.configuration = mailApp.getConfiguration();
+		this.messages = mailApp.getMessageController();
+		this.contactTableModel = mailApp.getContactTableModel();
+		this.dbController = mailApp.getDbController();
+		this.setLayout(new BorderLayout());
+
+		getTable();
+		getNewMessagePanel();
+
+		Font font = new Font("Times New Roman", Font.BOLD, 20);
+		headingLabel = new JLabel(" ", JLabel.CENTER);
+		headingLabel.setFont(font);
+		headingLabel.setText(messages.getString("new_heading"));
+
+		headingLabel.setIcon(MailApp.createImageIcon("images/new.png"));
+		add(headingLabel, BorderLayout.NORTH);
+		add(scrollPan, BorderLayout.CENTER);
+		add(newMessagePanel, BorderLayout.SOUTH);
+	}
+
+	private void getTable() {
+
+		if (scrollPan != null)
+			remove(scrollPan);
+
+		table = new JTable(contactTableModel);
+		table.setColumnSelectionAllowed(false);
+		table.setRowSelectionAllowed(true);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		table.setPreferredScrollableViewportSize(new Dimension(600, 200));
+		table.setFillsViewportHeight(true);
+		table.getTableHeader().setReorderingAllowed(false);
+
+		// Create the scroll pane and add the table to it.
+		scrollPan = new JScrollPane(table);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				Contact contact = contactTableModel.getContact(table
+						.getSelectedRow());
+				addToEmailField(contact.getEmail());
+			}
+		});
+	}
+
+	private void getNewMessagePanel() {
+		newMessagePanel = new JPanel();
+		newMessagePanel.setLayout(new GridBagLayout());
+
+		JLabel label;
+
+		// TO label & field
+		label = new JLabel(messages.getString("view_to"));
+		toField = new JTextField(30);
+		toField.addFocusListener(fieldFocusListener);
+		newMessagePanel.add(label, MailApp.makeConstraints(0, 0, 1, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		newMessagePanel.add(toField, MailApp.makeConstraints(1, 0, 3, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// CC label & field
+		label = new JLabel(messages.getString("view_cc"));
+		ccField = new JTextField(30);
+		ccField.addFocusListener(fieldFocusListener);
+		newMessagePanel.add(label, MailApp.makeConstraints(0, 1, 1, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		newMessagePanel.add(ccField, MailApp.makeConstraints(1, 1, 3, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// BCC label & field
+		label = new JLabel(messages.getString("view_bcc"));
+		bccField = new JTextField(30);
+		bccField.addFocusListener(fieldFocusListener);
+		newMessagePanel.add(label, MailApp.makeConstraints(0, 2, 1, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		newMessagePanel.add(bccField, MailApp.makeConstraints(1, 2, 3, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// Subject label & field
+		label = new JLabel(messages.getString("view_subject"));
+		subjectField = new JTextField(30);
+		newMessagePanel.add(label, MailApp.makeConstraints(0, 3, 1, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		newMessagePanel.add(subjectField, MailApp.makeConstraints(1, 3, 3, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+		// EditorPane
+		textArea = new JEditorPane();
+		textArea.setPreferredSize(new Dimension(500, 100));
+
+		// Put it inside a ScrollPane
+		JScrollPane scroll = new JScrollPane(textArea);
+
+		newMessagePanel.add(scroll, MailApp.makeConstraints(0, 4, 4, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.BOTH));
+
+		// Send button
+
+		JButton sendButton = new JButton(messages.getString("new_send"));
+		sendButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String error = null;
+				// This will create a new MailMessage and set it's folder_id to
+				// TOSEND.
+				String toEmails = toField.getText().trim();
+				String ccEmails = null;
+				String bccEmails = null;
+				String subject = null;
+				String message = null;
+				ArrayList<String> toList = null;
+				ArrayList<String> ccList = null;
+				ArrayList<String> bccList = null;
+
+				if (toEmails.isEmpty())
+					error = "You must have at least one email in the TO field.";
+				else {
+					ccEmails = ccField.getText().trim();
+					bccEmails = bccField.getText().trim();
+					subject = subjectField.getText().trim();
+					if (subject.isEmpty())
+						subject = "No Subject";
+					message = textArea.getText();
+
+					toList = DatabaseController.emailStringToList(toEmails);
+
+					ccList = DatabaseController.emailStringToList(ccEmails);
+
+					bccList = DatabaseController.emailStringToList(bccEmails);
+					if (!checkIfEmailsAreValid(toList))
+						error = "Invalid email in your TO field.";
+					else if (!checkIfEmailsAreValid(ccList))
+						error = "Invalid email in your CC field.";
+					else if (!checkIfEmailsAreValid(bccList))
+						error = "Invalid email in your BCC field.";
+				}
+				if (error == null) {
+					// Everything is valid, continue.
+					MailMessage newMessage = new MailMessage();
+					newMessage.setSenderEmail(configuration.getMailConfig()
+							.getEmailAddress());
+					newMessage.setReceiverEmail(toList);
+					newMessage.setCc(ccList);
+					newMessage.setBcc(bccList);
+					newMessage.setMessageDate(new Date());
+					newMessage.setSubject(subject);
+					newMessage.setMessage(message);
+					newMessage.setFolderId(TOSEND_FOLDER);
+					dbController.insertMessage(newMessage);
+					clearAllFields();
+					error = " ";
+				}
+				errorMessage.setText(error);
+			}
+
+		});
+		newMessagePanel.add(sendButton, MailApp.makeConstraints(0, 5, 4, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.NONE));
+		errorMessage = new JLabel(" ", JLabel.CENTER);
+		errorMessage.setForeground(Color.RED);
+		newMessagePanel.add(errorMessage, MailApp.makeConstraints(0, 6, 4, 1,
+				new int[] { 1, 1, 1, 1 }, 1, 1, GridBagConstraints.HORIZONTAL));
+
+	}
+
+	private boolean checkIfEmailsAreValid(ArrayList<String> emails) {
+		String emailRegEx = "^[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]$";
+		for (String email : emails)
+			if (!Pattern.matches(emailRegEx, email))
+				return false;
+		return true;
+	}
+
+	/**
+	 * Adds the email sent in to the field with the focus.
+	 * 
+	 * @param email
+	 */
+	private void addToEmailField(String email) {
+		if (fieldHasFocus != null) {
+			String emails = fieldHasFocus.getText().trim();
+			if (!emails.isEmpty()
+					&& !emails.endsWith(DatabaseController.EMAIL_DELIMITER))
+				emails += DatabaseController.EMAIL_DELIMITER;
+			emails += email;
+			fieldHasFocus.setText(emails);
+		}
+	}
+
+	/**
+	 * Clears all the fields in the form.
+	 */
+	public void clearAllFields() {
+		textArea.setText("");
+		subjectField.setText("");
+		toField.setText("");
+		ccField.setText("");
+		bccField.setText("");
+	}
+
+	private FocusListener fieldFocusListener = new FocusListener() {
+		@Override
+		public void focusGained(FocusEvent e) {
+			JTextField field = (JTextField) e.getSource();
+			fieldHasFocus = field;
+		}
+
+		@Override
+		public void focusLost(FocusEvent e) {
+
+		}
+
+	};
+}

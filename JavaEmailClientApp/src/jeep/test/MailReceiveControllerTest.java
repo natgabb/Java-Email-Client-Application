@@ -1,0 +1,77 @@
+package jeep.test;
+
+import java.util.ArrayList;
+
+import jeep.data.beans.MailConfig;
+import jeep.data.beans.MailMessage;
+import jeep.data.configuration.ConfigurationController;
+import jeep.mail.MailReceiveController;
+
+import org.junit.Ignore;
+import org.junit.Test;
+
+/**
+ * This tests the MailReceiveController.
+ * 
+ * @author Natacha Gabbamonte 0932340
+ * 
+ */
+public class MailReceiveControllerTest {
+
+	private MailReceiveController controller = null;
+	private ConfigurationController configs = null;
+
+	/**
+	 * Tests retrieving e-mails from a Gmail account.
+	 */
+	@Test
+	public void getMailWithGmail() {
+		configs = new ConfigurationController(null);
+		configs.loadProperties();
+		MailConfig mailConfig = configs.getMailConfig();
+		mailConfig.setEmailAddress("516jeep@gmail.com");
+		mailConfig.setUserNamePOP3("516jeep@gmail.com");
+		mailConfig.setPasswordPOP3("thisisapassword");
+		mailConfig.setUrlPOP3Server("pop.gmail.com");
+		mailConfig.setUrlSMTPServer("smtp.gmail.com");
+		mailConfig.setPortPOP3Server("995");
+		mailConfig.setPortSMTPServer("465");
+		mailConfig.setIsGmailAccount(true);
+		mailConfig.setIsSMTPAuth(false);
+		configs.writeProperties();
+		controller = new MailReceiveController(mailConfig, null);
+		ArrayList<MailMessage> allMessages = controller.getMail();
+		System.out
+				.println("Number of messages received: " + allMessages.size());
+		for (MailMessage message : allMessages)
+			System.out.println(message);
+	}
+
+	/**
+	 * Tests retrieving e-mails from the Waldo e-mail.
+	 */
+	@Ignore
+	@Test
+	public void getMailWithWaldo() {
+		configs = new ConfigurationController(null);
+		configs.loadProperties();
+		MailConfig mailConfig = configs.getMailConfig();
+		mailConfig.setEmailAddress("M0932340@waldo.dawsoncollege.qc.ca");
+		mailConfig.setUserNamePOP3("M0932340@CompSci");
+		mailConfig.setPasswordPOP3("FD48W07998");
+		mailConfig.setUrlPOP3Server("waldo.dawsoncollege.qc.ca");
+		mailConfig.setUrlSMTPServer("waldo.dawsoncollege.qc.ca");
+		mailConfig.setPortPOP3Server("110");
+		mailConfig.setPortSMTPServer("25");
+		mailConfig.setIsGmailAccount(false);
+		mailConfig.setIsSMTPAuth(true);
+		configs.writeProperties();
+		System.out.println(mailConfig);
+		controller = new MailReceiveController(mailConfig, null);
+		ArrayList<MailMessage> allMessages = controller.getMail();
+		System.out
+				.println("Number of messages received: " + allMessages.size());
+		for (MailMessage message : allMessages)
+			System.out.println(message);
+	}
+}
