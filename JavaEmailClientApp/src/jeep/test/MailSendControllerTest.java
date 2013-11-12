@@ -42,7 +42,7 @@ public class MailSendControllerTest {
 		controller = new MailSendController(mailConfig, null);
 		ArrayList<String> receiverEmails = new ArrayList<String>();
 		receiverEmails.add("M0932340@waldo.dawsoncollege.qc.ca");
-		receiverEmails.add("natgabb@hotmail.com");
+		receiverEmails.add("email@hotmail.com");
 		receiverEmails.add(mailConfig.getEmailAddress());
 		MailMessage message = new MailMessage(-1, mailConfig.getEmailAddress(),
 				receiverEmails, receiverEmails, receiverEmails,

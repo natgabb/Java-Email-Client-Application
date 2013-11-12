@@ -31,7 +31,7 @@ public class MailReceiveControllerTest {
 		MailConfig mailConfig = configs.getMailConfig();
 		mailConfig.setEmailAddress("516jeep@gmail.com");
 		mailConfig.setUserNamePOP3("516jeep@gmail.com");
-		mailConfig.setPasswordPOP3("thisisapassword");
+		mailConfig.setPasswordPOP3("password");
 		mailConfig.setUrlPOP3Server("pop.gmail.com");
 		mailConfig.setUrlSMTPServer("smtp.gmail.com");
 		mailConfig.setPortPOP3Server("995");
@@ -58,7 +58,7 @@ public class MailReceiveControllerTest {
 		MailConfig mailConfig = configs.getMailConfig();
 		mailConfig.setEmailAddress("M0932340@waldo.dawsoncollege.qc.ca");
 		mailConfig.setUserNamePOP3("M0932340@CompSci");
-		mailConfig.setPasswordPOP3("FD48W07998");
+		mailConfig.setPasswordPOP3("password");
 		mailConfig.setUrlPOP3Server("waldo.dawsoncollege.qc.ca");
 		mailConfig.setUrlSMTPServer("waldo.dawsoncollege.qc.ca");
 		mailConfig.setPortPOP3Server("110");
