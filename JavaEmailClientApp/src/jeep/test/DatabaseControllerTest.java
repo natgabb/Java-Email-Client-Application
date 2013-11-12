@@ -39,8 +39,8 @@ public class DatabaseControllerTest {
 		// "jeep", null);
 		
 		// To test using waldo.
-		 dbController = new DatabaseController("waldo.dawsoncollege.qc.ca",
-		 "3306", "D0932340", "ptaiders", "d0932340", null);
+		 dbController = new DatabaseController("somehost.com",
+		 "3306", "username", "password", "schema", null);
 	}
 
 	/**
@@ -72,7 +72,7 @@ public class DatabaseControllerTest {
 		ArrayList<String> emails = new ArrayList<String>();
 		emails.add("person1@mail.com");
 		emails.add("person2@mail.com");
-		MailMessage message = new MailMessage(-1, "natgabb@hotmail.com",
+		MailMessage message = new MailMessage(-1, "email@hotmail.com",
 				emails, emails, emails, "Subject line", mailContent, date, 1);
 		assertTrue(dbController.insertMessage(message));
 	}
@@ -89,7 +89,7 @@ public class DatabaseControllerTest {
 		ArrayList<String> emails = new ArrayList<String>();
 		emails.add("person1@mail.com");
 		emails.add("person2@mail.com");
-		MailMessage message = new MailMessage(-1, "natgabb@hotmail.com",
+		MailMessage message = new MailMessage(-1, "email@hotmail.com",
 				emails, emails, emails, "Subject goes here", mailContent, date,
 				1000);
 		assertFalse(dbController.insertMessage(message));
@@ -120,7 +120,7 @@ public class DatabaseControllerTest {
 	 */
 	@Test
 	public void insertContact() {
-		Contact contact = new Contact(-1, "Nat", "Gabb", "natgabb@hotmail.com",
+		Contact contact = new Contact(-1, "Nat", "Gabb", "email@hotmail.com",
 				"111-111-1111", "1234 Some Street, Mtl, Qc.",
 				"This is a comment.");
 		assertTrue(dbController.insertContact(contact));
